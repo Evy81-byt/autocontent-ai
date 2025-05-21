@@ -1,4 +1,3 @@
-
 import streamlit as st
 from openai import OpenAI, RateLimitError, OpenAIError
 from docx import Document
@@ -41,7 +40,7 @@ def generar_pdf(texto, nombre_archivo):
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.set_font("Arial", size=12)
     for linea in texto.split("\n"):
-        pdf.multi_cell(0, 10, linea)
+        pdf.multi_cell(0, 10, linea.encode("latin-1", "replace").decode("latin-1"))
     pdf.output(nombre_archivo)
 
 def generar_docx(texto, nombre_archivo):
@@ -91,7 +90,7 @@ if st.sidebar.button("Generar Contenido") and tema:
                     n=1
                 )
                 image_url = image_response.data[0].url
-                st.image(image_url, caption="🎨 Imagen generada por IA", use_column_width=True)
+                st.image(image_url, caption="🎨 Imagen generada por IA", use_container_width=True)
 
                 # Botón para descargar la imagen
                 import requests
@@ -165,5 +164,3 @@ if st.session_state.historial:
     for item in reversed(st.session_state.historial):
         with st.expander(f"{item['fecha']} {item['hora']} - {item['tipo']} - {item['tema']}"):
             st.markdown(item['contenido'])
-
-
