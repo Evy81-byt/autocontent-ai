@@ -1,7 +1,5 @@
-
-
 import streamlit as st
-from openai import OpenAI
+from openai import OpenAI, RateLimitError
 from docx import Document
 from fpdf import FPDF
 import base64
@@ -53,16 +51,21 @@ def guardar_en_csv(tema, contenido, fecha, hora):
 if st.sidebar.button("Generar Contenido") and tema:
     with st.spinner("Generando contenido con IA..."):
         prompt = f"Escribe un {tipo_contenido.lower()} sobre el tema '{tema}' con un tono {tono.lower()}."
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {"role": "system", "content": "Eres un experto en marketing y redacción."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=500,
-            temperature=0.7
-        )
-        contenido_generado = response.choices[0].message.content
+
+        try:
+            response = client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "Eres un experto en marketing y redacción."},
+                    {"role": "user", "content": prompt}
+                ],
+                max_tokens=500,
+                temperature=0.7
+            )
+            contenido_generado = response.choices[0].message.content
+        except RateLimitError:
+            st.error("🚫 Has alcanzado el límite de uso de OpenAI. Por favor, espera unos minutos e intenta de nuevo.")
+            st.stop()
 
         st.subheader("✍️ Contenido Generado")
         st.markdown(contenido_generado)
@@ -109,4 +112,3 @@ if st.session_state.historial:
     for item in reversed(st.session_state.historial):
         with st.expander(f"{item['fecha']} {item['hora']} - {item['tema']}"):
             st.markdown(item['contenido'])
-
