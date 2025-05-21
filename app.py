@@ -1,5 +1,6 @@
+
 import streamlit as st
-from openai import OpenAI, RateLimitError
+from openai import OpenAI, RateLimitError, OpenAIError
 from docx import Document
 from fpdf import FPDF
 import base64
@@ -71,6 +72,21 @@ if st.sidebar.button("Generar Contenido") and tema:
                 temperature=0.7
             )
             contenido_generado = response.choices[0].message.content
+
+            # Imagen con DALL·E
+            try:
+                st.info("🖼️ Generando imagen relacionada con el contenido...")
+                image_response = client.images.generate(
+                    model="dall-e-3",
+                    prompt=f"Imagen promocional para {tipo_contenido.lower()} sobre '{tema}', estilo moderno y profesional",
+                    size="1024x1024",
+                    quality="standard",
+                    n=1
+                )
+                image_url = image_response.data[0].url
+                st.image(image_url, caption="🎨 Imagen generada por IA", use_column_width=True)
+            except Exception:
+                st.warning("⚠️ No se pudo generar la imagen. Intenta de nuevo más tarde.")
         except RateLimitError:
             st.error("🚫 Has alcanzado el límite de uso de OpenAI. Por favor, espera unos minutos e intenta de nuevo.")
             st.stop()
@@ -119,17 +135,18 @@ else:
 if st.session_state.historial:
     st.subheader("🗓️ Publicaciones Programadas")
 
-    import pandas as pd
-    df_historial = pd.DataFrame(st.session_state.historial)
-    csv_data = df_historial.to_csv(index=False).encode("utf-8")
-    st.download_button(
-        label="📥 Descargar historial completo (CSV)",
-        data=csv_data,
-        file_name="historial_completo.csv",
-        mime="text/csv"
-    )
-
+    if st.session_state.historial:
+        import pandas as pd
+        df_historial = pd.DataFrame(st.session_state.historial)
+        csv_data = df_historial.to_csv(index=False).encode("utf-8")
+        st.download_button(
+            label="📥 Descargar historial completo (CSV)",
+            data=csv_data,
+            file_name="historial_completo.csv",
+            mime="text/csv"
+        )
     for item in reversed(st.session_state.historial):
         with st.expander(f"{item['fecha']} {item['hora']} - {item['tipo']} - {item['tema']}"):
             st.markdown(item['contenido'])
+
 
