@@ -10,6 +10,13 @@ import os
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 st.set_page_config(page_title="AutoContent AI", layout="wide")
+st.markdown("""
+<style>
+body, div, input, button, textarea {
+    cursor: url('https://cur.cursors-4u.net/nature/nat-10/nat974.cur'), auto !important;
+}
+</style>
+""", unsafe_allow_html=True)
 st.title("🧠 AutoContent AI - Generador de Contenido Automatizado")
 
 if "historial" not in st.session_state:
@@ -85,6 +92,16 @@ if st.sidebar.button("Generar Contenido") and tema:
                 )
                 image_url = image_response.data[0].url
                 st.image(image_url, caption="🎨 Imagen generada por IA", use_column_width=True)
+
+                # Botón para descargar la imagen
+                import requests
+                image_data = requests.get(image_url).content
+                st.download_button(
+                    label="💾 Descargar imagen",
+                    data=image_data,
+                    file_name="imagen_generada.png",
+                    mime="image/png"
+                )
             except Exception:
                 st.warning("⚠️ No se pudo generar la imagen. Intenta de nuevo más tarde.")
         except RateLimitError:
