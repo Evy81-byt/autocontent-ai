@@ -118,6 +118,18 @@ else:
 
 if st.session_state.historial:
     st.subheader("🗓️ Publicaciones Programadas")
+
+    import pandas as pd
+    df_historial = pd.DataFrame(st.session_state.historial)
+    csv_data = df_historial.to_csv(index=False).encode("utf-8")
+    st.download_button(
+        label="📥 Descargar historial completo (CSV)",
+        data=csv_data,
+        file_name="historial_completo.csv",
+        mime="text/csv"
+    )
+
     for item in reversed(st.session_state.historial):
         with st.expander(f"{item['fecha']} {item['hora']} - {item['tipo']} - {item['tema']}"):
             st.markdown(item['contenido'])
+
