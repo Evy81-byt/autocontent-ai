@@ -1,19 +1,16 @@
-
 import streamlit as st
-import openai
+from openai import OpenAI
 from docx import Document
 from fpdf import FPDF
 import base64
 import csv
 import os
 
-# Configurar clave API
-openai.api_key = st.secrets["OPENAI_API_KEY"]
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 st.set_page_config(page_title="AutoContent AI", layout="wide")
 st.title("🧠 AutoContent AI - Generador de Contenido Automatizado")
 
-# Inicializar historial en sesión
 if "historial" not in st.session_state:
     st.session_state.historial = []
 
@@ -54,8 +51,7 @@ def guardar_en_csv(tema, contenido, fecha, hora):
 if st.sidebar.button("Generar Contenido") and tema:
     with st.spinner("Generando contenido con IA..."):
         prompt = f"Escribe un {tipo_contenido.lower()} sobre el tema '{tema}' con un tono {tono.lower()}."
-
-        response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": "Eres un experto en marketing y redacción."},
@@ -64,12 +60,10 @@ if st.sidebar.button("Generar Contenido") and tema:
             max_tokens=500,
             temperature=0.7
         )
-
-        contenido_generado = response['choices'][0]['message']['content']
+        contenido_generado = response.choices[0].message.content
 
         st.subheader("✍️ Contenido Generado")
         st.markdown(contenido_generado)
-
         st.code(contenido_generado, language="markdown")
 
         nombre_pdf = "contenido_generado.pdf"
@@ -83,19 +77,10 @@ if st.sidebar.button("Generar Contenido") and tema:
 
         col1, col2 = st.columns(2)
         with col1:
-            st.download_button(
-                label="📄 Descargar como PDF",
-                data=base64.b64decode(pdf_encoded),
-                file_name=nombre_pdf,
-                mime="application/pdf"
-            )
+            st.download_button("📄 Descargar como PDF", base64.b64decode(pdf_encoded), nombre_pdf, "application/pdf")
         with col2:
-            st.download_button(
-                label="📝 Descargar como Word",
-                data=base64.b64decode(docx_encoded),
-                file_name=nombre_docx,
-                mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-            )
+            st.download_button("📝 Descargar como Word", base64.b64decode(docx_encoded), nombre_docx,
+                               "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
         with st.expander("📈 Optimización SEO"):
             st.markdown(f"- Sugerencia de título: `Título atractivo para SEO sobre {tema}`")
@@ -117,9 +102,8 @@ if st.sidebar.button("Generar Contenido") and tema:
 else:
     st.info("Ingresa un tema para generar contenido.")
 
-# Mostrar historial de publicaciones
 if st.session_state.historial:
     st.subheader("🗓️ Publicaciones Programadas")
-    for i, item in enumerate(st.session_state.historial[::-1]):
+    for item in reversed(st.session_state.historial):
         with st.expander(f"{item['fecha']} {item['hora']} - {item['tema']}"):
             st.markdown(item['contenido'])
