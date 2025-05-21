@@ -15,7 +15,15 @@ if "historial" not in st.session_state:
     st.session_state.historial = []
 
 st.sidebar.header("Configuración del contenido")
-tipo_contenido = st.sidebar.selectbox("Tipo de contenido", ["Post de Instagram", "Artículo de Blog", "Email Marketing", "Guión de video"])
+tipo_contenido = st.sidebar.selectbox("Tipo de contenido", [
+    "Post de Instagram",
+    "Carrusel de Instagram",
+    "TikTok / Reel",
+    "Artículo de Blog",
+    "Email Marketing",
+    "Descripción de Producto",
+    "Guión de video"
+])
 tono = st.sidebar.selectbox("Tono de voz", ["Profesional", "Creativo", "Casual", "Inspirador"])
 tema = st.sidebar.text_input("Tema o idea principal", "")
 
@@ -39,14 +47,14 @@ def obtener_descarga_binaria(ruta_archivo):
         data = f.read()
     return base64.b64encode(data).decode()
 
-def guardar_en_csv(tema, contenido, fecha, hora):
+def guardar_en_csv(tema, contenido, fecha, hora, tipo):
     archivo = "historial.csv"
     existe = os.path.isfile(archivo)
     with open(archivo, mode="a", encoding="utf-8", newline="") as f:
         writer = csv.writer(f)
         if not existe:
-            writer.writerow(["Tema", "Fecha", "Hora", "Contenido"])
-        writer.writerow([tema, fecha, hora, contenido])
+            writer.writerow(["Tema", "Tipo", "Fecha", "Hora", "Contenido"])
+        writer.writerow([tema, tipo, fecha, hora, contenido])
 
 if st.sidebar.button("Generar Contenido") and tema:
     with st.spinner("Generando contenido con IA..."):
@@ -56,10 +64,10 @@ if st.sidebar.button("Generar Contenido") and tema:
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "system", "content": "Eres un experto en marketing y redacción."},
+                    {"role": "system", "content": "Eres un experto en marketing y redacción de contenido."},
                     {"role": "user", "content": prompt}
                 ],
-                max_tokens=500,
+                max_tokens=800,
                 temperature=0.7
             )
             contenido_generado = response.choices[0].message.content
@@ -98,11 +106,12 @@ if st.sidebar.button("Generar Contenido") and tema:
             if st.button("📌 Guardar programación"):
                 st.session_state.historial.append({
                     "tema": tema,
+                    "tipo": tipo_contenido,
                     "contenido": contenido_generado,
                     "fecha": str(fecha),
                     "hora": str(hora)
                 })
-                guardar_en_csv(tema, contenido_generado, fecha, hora)
+                guardar_en_csv(tema, contenido_generado, fecha, hora, tipo_contenido)
                 st.success(f"Contenido agendado para {fecha} a las {hora}.")
 else:
     st.info("Ingresa un tema para generar contenido.")
@@ -110,5 +119,5 @@ else:
 if st.session_state.historial:
     st.subheader("🗓️ Publicaciones Programadas")
     for item in reversed(st.session_state.historial):
-        with st.expander(f"{item['fecha']} {item['hora']} - {item['tema']}"):
+        with st.expander(f"{item['fecha']} {item['hora']} - {item['tipo']} - {item['tema']}"):
             st.markdown(item['contenido'])
