@@ -1,3 +1,4 @@
+
 import streamlit as st
 from openai import OpenAI, RateLimitError, OpenAIError
 from docx import Document
@@ -9,13 +10,6 @@ import os
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 st.set_page_config(page_title="AutoContent AI", layout="wide")
-st.markdown("""
-<style>
-body, div, input, button, textarea {
-    cursor: url('https://cur.cursors-4u.net/nature/nat-10/nat974.cur'), auto !important;
-}
-</style>
-""", unsafe_allow_html=True)
 st.title("🧠 AutoContent AI - Generador de Contenido Automatizado")
 
 if "historial" not in st.session_state:
@@ -40,7 +34,7 @@ def generar_pdf(texto, nombre_archivo):
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.set_font("Arial", size=12)
     for linea in texto.split("\n"):
-        pdf.multi_cell(0, 10, linea.encode("latin-1", "replace").decode("latin-1"))
+        pdf.multi_cell(0, 10, linea)
     pdf.output(nombre_archivo)
 
 def generar_docx(texto, nombre_archivo):
@@ -84,23 +78,13 @@ if st.sidebar.button("Generar Contenido") and tema:
                 st.info("🖼️ Generando imagen relacionada con el contenido...")
                 image_response = client.images.generate(
                     model="dall-e-3",
-                    prompt=f"Imagen promocional para {tipo_contenido.lower()} sobre '{tema}', estilo moderno y profesional",
+                    prompt=f"Ambiente futbolístico profesional en un estadio lleno, fanáticos celebrando con banderas blancas y luces épicas. Inspirado en el espíritu del equipo Real Madrid, estilo realista, sin logos ni rostros específicos",
                     size="1024x1024",
                     quality="standard",
                     n=1
                 )
                 image_url = image_response.data[0].url
-                st.image(image_url, caption="🎨 Imagen generada por IA", use_container_width=True)
-
-                # Botón para descargar la imagen
-                import requests
-                image_data = requests.get(image_url).content
-                st.download_button(
-                    label="💾 Descargar imagen",
-                    data=image_data,
-                    file_name="imagen_generada.png",
-                    mime="image/png"
-                )
+                st.image(image_url, caption="🎨 Imagen generada por IA", use_column_width=True)
             except Exception:
                 st.warning("⚠️ No se pudo generar la imagen. Intenta de nuevo más tarde.")
         except RateLimitError:
