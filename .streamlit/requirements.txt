@@ -1,0 +1,7 @@
+streamlit
+openai
+gtts
+fpdf
+python-docx
+gspread
+google-auth
