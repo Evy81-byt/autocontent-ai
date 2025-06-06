@@ -5,3 +5,6 @@ fpdf
 python-docx
 gspread
 google-auth
+requests
+Pillow
+
