@@ -24,7 +24,7 @@ creds = Credentials.from_service_account_info(google_creds, scopes=scope)
 client_sheets = gspread.authorize(creds)
 
 try:
-    sheet = client_sheets.open_by_key("TU_ID_DE_HOJA").sheet1
+    sheet = client_sheets.open_by_key("1e0WAgCTEaTzgjs0ehUd7rdkEJgeUL4YR_uoftV1lRyg").sheet1
 except Exception as e:
     st.error("❌ No se pudo conectar con Google Sheets.")
     sheet = None
@@ -74,7 +74,7 @@ if st.button("🚀 Crear contenido"):
     if tema:
         texto = generar_contenido(tema, tipo, tono)
         st.text_area("✍️ Contenido generado", value=texto, height=300)
-        
+
         # Guardar en hoja
         fecha, hora = datetime.now().date(), datetime.now().time()
         if sheet:
@@ -86,6 +86,7 @@ if st.button("🚀 Crear contenido"):
         nombre_pdf = f"contenido_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
         generar_pdf(texto, nombre_pdf)
         with open(nombre_pdf, "rb") as f:
-            btn = st.download_button(label="📄 Descargar PDF", data=f, file_name=nombre_pdf, mime="application/pdf")
+            st.download_button(label="📄 Descargar PDF", data=f, file_name=nombre_pdf, mime="application/pdf")
     else:
         st.warning("Por favor, completa el tema antes de generar contenido.")
+
