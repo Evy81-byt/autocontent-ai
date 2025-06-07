@@ -22,32 +22,47 @@ try:
     hoja = sheet.worksheet("Imagenes")
     data = hoja.get_all_records()
     df = pd.DataFrame(data)
+
+    # Normalizar columnas a minúsculas sin espacios
+    df.columns = [col.strip().lower() for col in df.columns]
+
+    # Crear un mapeo esperado
+    columnas_necesarias = {
+        "usuario": "usuario",
+        "tema": "tema",
+        "fecha": "fecha",
+        "hora": "hora",
+        "imagen": "imagen"
+    }
+
+    if not all(col in df.columns for col in columnas_necesarias):
+        st.error("❌ Las columnas no coinciden con lo esperado.")
+        st.markdown("Se esperaban columnas: `Usuario`, `Tema`, `Fecha`, `Hora`, `Imagen`")
+        st.stop()
+
+    # Renombrar por si acaso
+    df = df.rename(columns=columnas_necesarias)
+
 except Exception as e:
     st.error("❌ No se pudo cargar el historial desde Google Sheets.")
     st.exception(e)
     st.stop()
 
-# --- Verificar columnas esperadas ---
-columnas_esperadas = ["Usuario", "Tema", "Fecha", "Hora", "Imagen"]
-if not all(col in df.columns for col in columnas_esperadas):
-    st.error("❌ Las columnas de la hoja 'Imagenes' no coinciden con lo esperado.")
-    st.markdown("Se esperaban las columnas: `Usuario`, `Tema`, `Fecha`, `Hora`, `Imagen`")
-    st.stop()
-
 # --- Filtro por usuario ---
 st.title("📸 Historial de Imágenes")
 
-usuarios_disponibles = df["Usuario"].unique().tolist()
+usuarios_disponibles = df["usuario"].unique().tolist()
 usuario_actual = st.selectbox("Selecciona un usuario", usuarios_disponibles)
 
-df_usuario = df[df["Usuario"] == usuario_actual]
+df_usuario = df[df["usuario"] == usuario_actual]
 
 if df_usuario.empty:
     st.warning("Este usuario aún no ha generado imágenes.")
 else:
     for idx, fila in df_usuario.iterrows():
-        st.markdown(f"### 🎯 Tema: {fila['Tema']}")
-        st.image(fila["Imagen"], use_column_width=True)
-        st.caption(f"🕒 {fila['Fecha']} - {fila['Hora']}")
+        st.markdown(f"### 🎯 Tema: {fila['tema']}")
+        st.image(fila["imagen"], use_column_width=True)
+        st.caption(f"🕒 {fila['fecha']} - {fila['hora']}")
+
 
 
