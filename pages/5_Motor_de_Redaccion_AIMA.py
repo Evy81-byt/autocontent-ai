@@ -21,14 +21,14 @@ try:
     google_creds = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
     creds = Credentials.from_service_account_info(google_creds, scopes=scope)
     client = gspread.authorize(creds)
-    sheet = client.open_by_key("1e0WAgCTEaTzgjs0ehUd7rdkEJgeUL4YR_uoftV1lRyg")
+    sheet = client.open_by_key("1GfknVmvP8Galub6XS2jhbB0ZnBExTWtk5IXAAzp46Wg")
     hoja = sheet.worksheet("Motor de Redaccion AIMA")
 except Exception as e:
     st.error("❌ No se pudo conectar con Google Sheets.")
     st.exception(e)
     st.stop()
 
-# --- Inicio sesión ---
+# --- Inicio de sesión ---
 if "usuario" not in st.session_state:
     st.session_state.usuario = ""
 
@@ -44,7 +44,7 @@ if not st.session_state.usuario:
 
 usuario = st.session_state.usuario
 
-# --- Interfaz ---
+# --- Interfaz de usuario ---
 st.title("📝 Motor de Redacción AIMA")
 
 tipo = st.selectbox("Tipo de contenido", ["Artículo", "Email", "Video Script", "Post Instagram", "Otro"])
@@ -76,7 +76,7 @@ if st.button("✍️ Generar contenido"):
     if tema.strip():
         texto = generar_contenido(tema, tipo, tono)
         st.success("✅ Contenido generado:")
-        st.text_area("Contenido", value=texto, height=300)
+        st.text_area("🧾 Vista previa", value=texto, height=300)
 
         # Guardar en Google Sheets
         fecha = datetime.now().strftime("%Y-%m-%d")
@@ -90,5 +90,6 @@ if st.button("✍️ Generar contenido"):
         with open(nombre_pdf, "rb") as f:
             st.download_button("📄 Descargar PDF", data=f, file_name=nombre_pdf, mime="application/pdf")
     else:
-        st.warning("Por favor, escribe el tema.")
+        st.warning("Por favor, completa el tema.")
+
 
