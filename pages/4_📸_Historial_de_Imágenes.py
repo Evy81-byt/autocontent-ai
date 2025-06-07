@@ -27,21 +27,12 @@ try:
     df.columns = [col.strip().lower() for col in df.columns]
 
     # Crear un mapeo esperado
-    columnas_necesarias = {
-        "usuario": "usuario",
-        "tema": "tema",
-        "fecha": "fecha",
-        "hora": "hora",
-        "imagen": "imagen"
-    }
+    columnas_necesarias = ["usuario", "tema", "fecha", "hora", "imagen"]
 
     if not all(col in df.columns for col in columnas_necesarias):
         st.error("❌ Las columnas no coinciden con lo esperado.")
         st.markdown("Se esperaban columnas: `Usuario`, `Tema`, `Fecha`, `Hora`, `Imagen`")
         st.stop()
-
-    # Renombrar por si acaso
-    df = df.rename(columns=columnas_necesarias)
 
 except Exception as e:
     st.error("❌ No se pudo cargar el historial desde Google Sheets.")
@@ -51,7 +42,11 @@ except Exception as e:
 # --- Filtro por usuario ---
 st.title("📸 Historial de Imágenes")
 
-usuarios_disponibles = df["usuario"].unique().tolist()
+usuarios_disponibles = df["usuario"].dropna().unique().tolist()
+if not usuarios_disponibles:
+    st.warning("No hay usuarios disponibles.")
+    st.stop()
+
 usuario_actual = st.selectbox("Selecciona un usuario", usuarios_disponibles)
 
 df_usuario = df[df["usuario"] == usuario_actual]
@@ -63,6 +58,7 @@ else:
         st.markdown(f"### 🎯 Tema: {fila['tema']}")
         st.image(fila["imagen"], use_column_width=True)
         st.caption(f"🕒 {fila['fecha']} - {fila['hora']}")
+
 
 
 
