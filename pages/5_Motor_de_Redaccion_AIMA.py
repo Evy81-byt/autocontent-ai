@@ -25,6 +25,7 @@ try:
     hoja = sheet.worksheet("Motor de Redaccion AIMA")
 except Exception as e:
     st.error("❌ No se pudo conectar con Google Sheets.")
+    st.exception(e)
     st.stop()
 
 # --- Inicio sesión ---
@@ -90,3 +91,4 @@ if st.button("✍️ Generar contenido"):
             st.download_button("📄 Descargar PDF", data=f, file_name=nombre_pdf, mime="application/pdf")
     else:
         st.warning("Por favor, escribe el tema.")
+
