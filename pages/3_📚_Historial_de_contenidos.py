@@ -4,84 +4,76 @@ import gspread
 from google.oauth2.service_account import Credentials
 import json
 
-st.set_page_config(page_title="📚 Historial de Contenidos")
+st.set_page_config(page_title="Historial de Contenidos", layout="wide")
+st.title("📚 Historial de Contenidos")
 
-# --- Cargar credenciales ---
-google_creds = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
+# --- Usuario actual ---
+if "usuario" not in st.session_state or not st.session_state.usuario:
+    st.warning("Por favor, inicia sesión desde la página principal.")
+    st.stop()
+
+usuario_actual = st.session_state.usuario
+
+# --- Conectar con Google Sheets ---
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive.file",
     "https://www.googleapis.com/auth/drive"
 ]
-creds = Credentials.from_service_account_info(google_creds, scopes=scope)
+creds_dict = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
+creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
 client_sheets = gspread.authorize(creds)
 
-# --- Conectar con la hoja de cálculo ---
 try:
-    sheet = client_sheets.open_by_key("1e0WAgCTEaTzgjs0ehUd7rdkEJgeUL4YR_uoftV1lRyg").worksheet("Historial")
-    data = sheet.get_all_values()
-    if data:
-        headers = data[0]
-        rows = data[1:]
-        df = pd.DataFrame(rows, columns=headers)
-    else:
-        st.info("📭 La hoja 'Historial' está vacía.")
-        df = pd.DataFrame()
+    hoja = client_sheets.open_by_key("1e0WAgCTEaTzgjs0ehUd7rdkEJgeUL4YR_uoftV1lRyg").worksheet("Historial")
+    datos = hoja.get_all_records()
+    df = pd.DataFrame(datos)
 except Exception as e:
-    st.error("❌ No se pudo acceder a la hoja 'Historial'.")
-    st.error(str(e))
-    df = pd.DataFrame()
-
-# --- Verificación de usuario ---
-usuario_actual = st.session_state.get("usuario", "")
-
-st.title("📚 Historial de Contenidos")
-
-if not usuario_actual:
-    st.warning("Debes iniciar sesión para ver tu historial.")
+    st.error("❌ No se pudo cargar el historial desde Google Sheets.")
     st.stop()
 
-if df.empty:
-    st.info("No hay contenidos generados aún.")
+# --- Mostrar historial del usuario ---
+if df.empty or "Usuario" not in df.columns:
+    st.info("No hay registros disponibles aún.")
     st.stop()
 
-# --- Comprobación robusta de columnas ---
-if "Usuario" in df.columns:
-    df_usuario = df[df["Usuario"] == usuario_actual]
-    
-    if df_usuario.empty:
-        st.info("No hay contenidos generados por este usuario.")
-    else:
-        st.dataframe(df_usuario)
+df_usuario = df[df["Usuario"] == usuario_actual]
+st.dataframe(df_usuario, use_container_width=True)
 
-        # --- Selección de filas para eliminar ---
-        st.subheader("🗑️ Eliminar registros")
-        indices = df_usuario.index.tolist()
-        opciones = [f"{i+1}. {df_usuario.iloc[i]['Tema'][:40]}" for i in range(len(df_usuario))]
-        seleccion = st.multiselect("Selecciona los registros que deseas eliminar:", opciones)
+# --- Descargar como CSV ---
+st.markdown("### 📥 Descargar historial")
+csv = df_usuario.to_csv(index=False).encode('utf-8')
+st.download_button(
+    label="📄 Descargar CSV",
+    data=csv,
+    file_name=f"historial_{usuario_actual}.csv",
+    mime='text/csv'
+)
 
-        if seleccion:
-            seleccion_indices = [int(op.split(".")[0]) - 1 for op in seleccion]
-            eliminar = st.button("❌ Confirmar eliminación")
-            if eliminar:
-                # Eliminamos del DataFrame original (df)
-                ids_eliminar = df_usuario.iloc[seleccion_indices].index
-                df = df.drop(index=ids_eliminar).reset_index(drop=True)
+# --- Eliminar registros seleccionados ---
+st.markdown("### 🗑️ Eliminar registros")
+if not df_usuario.empty:
+    indices = st.multiselect("Selecciona las filas a eliminar", df_usuario.index.tolist())
+    if st.button("Eliminar seleccionados"):
+        if indices:
+            hoja_valores = hoja.get_all_values()
+            cabecera = hoja_valores[0]
+            filas_originales = hoja_valores[1:]
 
-                # Reescribir hoja completa
-                sheet.clear()
-                sheet.append_row(df.columns.tolist())
-                for fila in df.values.tolist():
-                    sheet.append_row(fila)
+            nuevas_filas = [
+                fila for i, fila in enumerate(filas_originales)
+                if not (i in df_usuario.index and i in indices)
+            ]
 
-                st.success("✅ Registros eliminados correctamente. Recarga la página para ver cambios.")
-                st.stop()
+            hoja.clear()
+            hoja.append_row(cabecera)
+            for fila in nuevas_filas:
+                hoja.append_row(fila)
+            st.success("✅ Registros eliminados correctamente.")
+            st.rerun()
+        else:
+            st.warning("No seleccionaste ninguna fila.")
 
-        # --- Botón de descarga ---
-        csv = df_usuario.to_csv(index=False).encode("utf-8")
-        st.download_button("📥 Descargar historial como CSV", data=csv, file_name="historial_contenidos.csv", mime="text/csv")
-else:
-    st.error("⚠️ La columna 'Usuario' no se encuentra en la hoja. Verifica la estructura.")
 
 
