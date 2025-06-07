@@ -1,54 +1,57 @@
 import streamlit as st
 import pandas as pd
-import json
 import gspread
 from google.oauth2.service_account import Credentials
+import json
 
-st.set_page_config(page_title="📸 Historial de Imágenes")
+st.title("📸 Historial de Imágenes")
 
-# --- Verifica sesión ---
-if "usuario" not in st.session_state or not st.session_state.usuario:
-    st.warning("Por favor, inicia sesión desde la sección de inicio.")
-    st.stop()
-
-usuario_actual = st.session_state.usuario
-
-# --- Cargar credenciales ---
-google_creds = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
+# Conexión segura
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive.file",
-    "https://www.googleapis.com/auth/drive"
+    "https://www.googleapis.com/auth/drive",
 ]
-creds = Credentials.from_service_account_info(google_creds, scopes=scope)
-client_sheets = gspread.authorize(creds)
+creds_dict = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
+creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
+client = gspread.authorize(creds)
 
-# --- Acceder a la hoja 'Imagen' ---
 try:
-    hoja = client_sheets.open_by_key("1e0WAgCTEaTzgjs0ehUd7rdkEJgeUL4YR_uoftV1lRyg").worksheet("Imagen")
-    datos = hoja.get_all_records()
-    df = pd.DataFrame(datos)
+    sheet = client.open_by_key("1e0WAgCTEaTzgjs0ehUd7rdkEJgeUL4YR_uoftV1lRyg").worksheet("Imagen")
+    data = sheet.get_all_records()
+    df = pd.DataFrame(data)
+
+    # Normalizar columnas (hacerlas insensibles a mayúsculas/minúsculas)
+    df.columns = [col.strip().lower() for col in df.columns]
+
+    if df.empty:
+        st.info("No hay imágenes generadas todavía.")
+        st.stop()
+
+    # Verificar si hay columnas necesarias
+    columnas_requeridas = {"usuario", "prompt", "fecha", "hora", "url"}
+    if not columnas_requeridas.issubset(set(df.columns)):
+        st.error("❌ Faltan columnas requeridas: asegúrate de tener encabezados como Usuario, Prompt, Fecha, Hora, URL.")
+        st.stop()
+
+    usuario_actual = st.session_state.get("usuario", "")
+    if not usuario_actual:
+        st.warning("Debes iniciar sesión primero.")
+        st.stop()
+
+    df_usuario = df[df["usuario"] == usuario_actual]
+
+    if df_usuario.empty:
+        st.info("No tienes imágenes guardadas todavía.")
+    else:
+        for _, fila in df_usuario.iterrows():
+            st.markdown(f"**📌 Prompt:** {fila['prompt']}")
+            st.image(fila['url'], use_column_width=True)
+            st.caption(f"📅 {fila['fecha']} ⏰ {fila['hora']}")
+            st.markdown("---")
+
 except Exception as e:
-    st.error("❌ No se pudo acceder a la hoja 'Imagen'.")
-    st.stop()
+    st.error("Error al conectar con la hoja de cálculo.")
+    st.exception(e)
 
-st.title("📸 Historial de Imágenes")
-
-# --- Filtro por usuario ---
-usuarios_disponibles = df["Usuario"].unique().tolist()
-usuario_filtrado = st.selectbox("Filtrar por usuario", ["Todos"] + usuarios_disponibles)
-
-if usuario_filtrado != "Todos":
-    df = df[df["Usuario"] == usuario_filtrado]
-
-# --- Mostrar resultados ---
-if not df.empty:
-    for _, fila in df.iterrows():
-        st.subheader(f"🧑 Usuario: {fila['Usuario']} - 🕒 {fila['Fecha']}")
-        st.write(f"🎨 Prompt: *{fila['Prompt']}*")
-        st.image(fila['URL'], width=300)
-        st.markdown(f"[Abrir imagen en nueva pestaña]({fila['URL']})")
-        st.markdown("---")
-else:
-    st.info("No hay imágenes registradas con ese filtro.")
