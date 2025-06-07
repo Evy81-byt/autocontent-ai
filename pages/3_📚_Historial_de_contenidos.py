@@ -22,8 +22,9 @@ scope = [
     "https://www.googleapis.com/auth/drive"
 ]
 google_creds = st.secrets["GOOGLE_CREDENTIALS"]
-creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
-client_sheets = gspread.authorize(creds)
+creds = Credentials.from_service_account_info(google_creds, scopes=scope)
+client = gspread.authorize(creds)
+
 
 try:
     hoja = client_sheets.open_by_key("1e0WAgCTEaTzgjs0ehUd7rdkEJgeUL4YR_uoftV1lRyg").worksheet("Historial")
