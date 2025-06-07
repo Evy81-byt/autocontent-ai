@@ -14,10 +14,11 @@ scope = [
 ]
 
 try:
-    google_creds = st.secrets["GOOGLE_CREDENTIALS"]
-    creds = Credentials.from_service_account_info(google_creds, scopes=scope)
+    creds = Credentials.from_service_account_info(
+        st.secrets["GOOGLE_CREDENTIALS"], scopes=scope
+    )
     client = gspread.authorize(creds)
-    sheet = client.open_by_key("1GfknVmvP8Galub6XS2jhbB0ZnBExTWtk5IXAAzp46Wg")
+    sheet = client.open_by_key(st.secrets["SPREADSHEET_ID"])
     hoja = sheet.worksheet("Historial")
     data = hoja.get_all_records()
     df = pd.DataFrame(data)
@@ -25,46 +26,37 @@ try:
     # Normalizar nombres de columnas
     df.columns = [col.strip().lower() for col in df.columns]
 
-    # Verificar columnas necesarias
     columnas_esperadas = ["usuario", "tema", "tipo", "tono", "fecha", "hora", "texto"]
     if not all(col in df.columns for col in columnas_esperadas):
         st.error("❌ Las columnas no coinciden con lo esperado.")
         st.markdown("Se esperaban columnas: `usuario`, `tema`, `tipo`, `tono`, `fecha`, `hora`, `texto`")
         st.stop()
 
-    # Renombrar por consistencia
-    df = df.rename(columns={
-        "usuario": "Usuario",
-        "tema": "Tema",
-        "tipo": "Tipo",
-        "tono": "Tono",
-        "fecha": "Fecha",
-        "hora": "Hora",
-        "texto": "Texto"
-    })
-
 except Exception as e:
     st.error("❌ No se pudo cargar el historial desde Google Sheets.")
     st.exception(e)
     st.stop()
 
-# --- UI ---
 st.title("📚 Historial de Contenidos")
 
-usuarios = df["Usuario"].dropna().unique().tolist()
-usuario_actual = st.selectbox("Filtrar por usuario", options=["Todos"] + usuarios)
+usuarios_disponibles = df["usuario"].dropna().unique().tolist()
+if not usuarios_disponibles:
+    st.warning("No hay usuarios disponibles.")
+    st.stop()
 
-df_filtrado = df if usuario_actual == "Todos" else df[df["Usuario"] == usuario_actual]
+usuario_actual = st.selectbox("Selecciona un usuario", usuarios_disponibles)
+df_usuario = df[df["usuario"] == usuario_actual]
 
-if df_filtrado.empty:
-    st.warning("No hay contenidos disponibles para mostrar.")
+if df_usuario.empty:
+    st.info("Este usuario aún no tiene historial.")
 else:
-    for _, fila in df_filtrado.iterrows():
-        st.markdown(f"### 📝 Tema: {fila['Tema']}")
-        st.markdown(f"**Tipo:** {fila['Tipo']} | **Tono:** {fila['Tono']} | 📅 {fila['Fecha']} ⏰ {fila['Hora']}")
-        st.markdown(f"**Texto generado:**")
-        st.info(fila["Texto"])
+    for idx, fila in df_usuario.iterrows():
+        st.markdown(f"### ✍️ Tema: {fila['tema']}")
+        st.markdown(f"**Tipo:** {fila['tipo']}  |  **Tono:** {fila['tono']}")
+        st.markdown(f"📅 {fila['fecha']} ⏰ {fila['hora']}")
+        st.markdown(f"📝 {fila['texto']}")
         st.markdown("---")
+
 
 
 
