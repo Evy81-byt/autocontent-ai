@@ -4,7 +4,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 import json
 
-st.set_page_config(page_title="📊 Panel de Control de Contenidos")
+st.set_page_config(page_title="📊 Panel de Control")
 
 # --- Autenticación Google Sheets ---
 scope = [
@@ -23,32 +23,14 @@ try:
     data = hoja.get_all_records()
     df = pd.DataFrame(data)
 
-    # Normalizar nombres de columnas
-    df.columns = [col.strip().lower() for col in df.columns]
-
-    # Verificación básica
-    columnas_requeridas = ["título", "tema", "usuario", "estado", "fecha", "hora"]
-    if not all(col in df.columns for col in columnas_requeridas):
-        st.error("❌ Las columnas no coinciden con lo esperado.")
-        st.markdown("Se esperaban columnas: `Título`, `Tema`, `Usuario`, `Estado`, `Fecha`, `Hora`")
-        st.stop()
+    st.write("🔍 **Columnas detectadas desde Google Sheets:**")
+    st.write(df.columns.tolist())  # Muestra las columnas tal como las está leyendo
 
 except Exception as e:
-    st.error("❌ No se pudo cargar el Panel desde Google Sheets.")
+    st.error("❌ Error al conectar con Google Sheets.")
     st.exception(e)
     st.stop()
 
-# --- Filtro de estado ---
-st.title("📊 Panel de Control de Contenidos")
-
-estado_filtro = st.selectbox("Filtrar por estado", options=["Todos"] + sorted(df["estado"].dropna().unique().tolist()))
-
-if estado_filtro != "Todos":
-    df = df[df["estado"] == estado_filtro]
-
-# --- Mostrar datos ---
-st.dataframe(df)
-st.success(f"✅ {len(df)} registros mostrados.")
 
 
          
