@@ -46,14 +46,26 @@ if not st.session_state.usuario:
 
 # --- UI Configuración de contenido ---
 st.title("🧠 Generador de Contenido AI")
-tipo = st.selectbox("Tipo de contenido", ["Post de Instagram", "Artículo de Blog", "Email Marketing", "Guión de video", "TikTok / Reel"])
+tipo = st.selectbox("Tipo de contenido", list(plantillas_contenido.keys()))
 tono = st.selectbox("Tono de voz", ["Profesional", "Creativo", "Casual", "Inspirador"])
+
+# Mostrar plantillas disponibles para el tipo seleccionado
+opciones_plantilla = list(plantillas_contenido[tipo].keys())
+plantilla_elegida = st.selectbox("Plantilla", opciones_plantilla)
+
 tema = st.text_area("Tema o idea principal")
 
+
 # --- Lógica IA y generación ---
-def generar_contenido(tema, tipo, tono):
+def generar_contenido(tema, tipo, tono, plantilla_elegida):
     client = OpenAI(api_key=openai_api_key)
-    prompt = f"Genera un {tipo} con tono {tono} sobre el tema: {tema}"
+    prompt = plantillas_contenido[tipo][plantilla_elegida].format(tema=tema, tono=tono)
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return response.choices[0].message.content
+
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": prompt}]
@@ -73,8 +85,8 @@ def generar_pdf(texto, nombre_archivo):
 
 if st.button("🚀 Crear contenido"):
     if tema:
-        texto = generar_contenido(tema, tipo, tono)
-        st.text_area("✍️ Contenido generado", value=texto, height=300)
+       texto = generar_contenido(tema, tipo, tono, plantilla_elegida)
+ st.text_area("✍️ Contenido generado", value=texto, height=300)
 
         # Guardar en hoja
         fecha, hora = datetime.now().date(), datetime.now().time()
