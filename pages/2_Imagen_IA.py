@@ -10,7 +10,7 @@ from datetime import datetime
 
 # --- CONFIGURACIÓN DE API ---
 openai.api_key = st.secrets["OPENAI_API_KEY"]
-google_creds = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
+google_creds = st.secrets["GOOGLE_CREDENTIALS"]
 
 # --- Conexión a Google Sheets ---
 scope = [
