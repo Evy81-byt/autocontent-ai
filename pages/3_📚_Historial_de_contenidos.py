@@ -49,10 +49,36 @@ if df.empty:
 # --- Comprobación robusta de columnas ---
 if "Usuario" in df.columns:
     df_usuario = df[df["Usuario"] == usuario_actual]
+    
     if df_usuario.empty:
         st.info("No hay contenidos generados por este usuario.")
     else:
         st.dataframe(df_usuario)
+
+        # --- Selección de filas para eliminar ---
+        st.subheader("🗑️ Eliminar registros")
+        indices = df_usuario.index.tolist()
+        opciones = [f"{i+1}. {df_usuario.iloc[i]['Tema'][:40]}" for i in range(len(df_usuario))]
+        seleccion = st.multiselect("Selecciona los registros que deseas eliminar:", opciones)
+
+        if seleccion:
+            seleccion_indices = [int(op.split(".")[0]) - 1 for op in seleccion]
+            eliminar = st.button("❌ Confirmar eliminación")
+            if eliminar:
+                # Eliminamos del DataFrame original (df)
+                ids_eliminar = df_usuario.iloc[seleccion_indices].index
+                df = df.drop(index=ids_eliminar).reset_index(drop=True)
+
+                # Reescribir hoja completa
+                sheet.clear()
+                sheet.append_row(df.columns.tolist())
+                for fila in df.values.tolist():
+                    sheet.append_row(fila)
+
+                st.success("✅ Registros eliminados correctamente. Recarga la página para ver cambios.")
+                st.stop()
+
+        # --- Botón de descarga ---
         csv = df_usuario.to_csv(index=False).encode("utf-8")
         st.download_button("📥 Descargar historial como CSV", data=csv, file_name="historial_contenidos.csv", mime="text/csv")
 else:
