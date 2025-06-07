@@ -91,8 +91,9 @@ if st.button("🚀 Crear contenido"):
         # Guardar en hoja
         fecha, hora = datetime.now().date(), datetime.now().time()
         if sheet:
-            fila = [st.session_state.usuario, tema, str(fecha), str(hora), texto]
-            sheet.append_row(fila)
+            fila = [st.session_state.usuario, tema, tipo, tono, plantilla_elegida, str(fecha), str(hora), texto]
+sheet.append_row(fila)
+
             st.success("✅ Guardado en Google Sheets")
 
         # Guardar PDF
