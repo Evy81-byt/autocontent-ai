@@ -6,6 +6,7 @@ import gspread
 import json
 from google.oauth2.service_account import Credentials
 import re
+from plantillas import plantillas_contenido
 
 st.set_page_config(page_title="Generador de Contenido")
 
