@@ -18,9 +18,10 @@ scope = [
 ]
 
 try:
-    google_creds = st.secrets["GOOGLE_CREDENTIALS"]
-    creds = Credentials.from_service_account_info(google_creds, scopes=scope)
-    client = gspread.authorize(creds)
+   google_creds = st.secrets["GOOGLE_CREDENTIALS"]
+creds = Credentials.from_service_account_info(google_creds, scopes=scope)
+client = gspread.authorize(creds)
+
     sheet = client.open_by_key("1GfknVmvP8Galub6XS2jhbB0ZnBExTWtk5IXAAzp46Wg")
     hoja = sheet.worksheet("Motor de Redaccion AIMA")
     data = hoja.get_all_records()
