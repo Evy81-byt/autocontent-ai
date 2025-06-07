@@ -24,9 +24,9 @@ try:
     df = pd.DataFrame(data)
 
     # Normalizar columnas a minúsculas sin espacios
-    df.columns = [col.strip().lower() for col in df.columns]
+   estado_filtro = st.selectbox("Filtrar por estado", options=["Todos"] + df["estado"].unique())
 
-    # Renombrar a nombres esperados
+   # Renombrar a nombres esperados
     columnas_esperadas = {
         "título": "titulo",
         "tema": "tema",
@@ -47,6 +47,7 @@ except Exception as e:
 st.title("📊 Panel de Control de Contenidos")
 
 # --- Filtros dinámicos ---
+st.write("Columnas encontradas en Google Sheets:", df.columns.tolist())
 estado_filtro = st.selectbox("Filtrar por estado", options=["Todos"] + sorted(df["estado"].dropna().unique()))
 usuario_filtro = st.selectbox("Filtrar por usuario", options=["Todos"] + sorted(df["usuario"].dropna().unique()))
 
