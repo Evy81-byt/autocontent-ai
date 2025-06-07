@@ -21,7 +21,7 @@ scope = [
     "https://www.googleapis.com/auth/drive.file",
     "https://www.googleapis.com/auth/drive"
 ]
-creds_dict = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
+google_creds = st.secrets["GOOGLE_CREDENTIALS"]
 creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
 client_sheets = gspread.authorize(creds)
 
