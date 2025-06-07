@@ -11,7 +11,7 @@ st.set_page_config(page_title="Generador de Contenido AI", layout="wide")
 
 # --- Cargar claves desde secrets ---
 openai_api_key = st.secrets["OPENAI_API_KEY"]
-google_creds = json.loads(st.secrets["GOOGLE_CREDENTIALS"])
+google_creds = st.secrets["GOOGLE_CREDENTIALS"]
 
 # --- Conexión con Google Sheets ---
 scope = [
