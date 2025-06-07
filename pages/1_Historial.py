@@ -14,8 +14,9 @@ scope = [
     "https://www.googleapis.com/auth/drive"
 ]
 google_creds = st.secrets["GOOGLE_CREDENTIALS"]
-creds = Credentials.from_service_account_info(creds_dict, scopes=scope)
-client_sheets = gspread.authorize(creds)
+creds = Credentials.from_service_account_info(google_creds, scopes=scope)
+client = gspread.authorize(creds)
+
 
 # --- Conectar con la hoja ---
 try:
