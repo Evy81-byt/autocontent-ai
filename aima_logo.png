@@ -1,0 +1,1 @@
+logo = Image.open("aima_logo.png")
