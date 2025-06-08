@@ -11,7 +11,7 @@ st.markdown("""
             color: #2c3e50;
         }
         body, .stApp {
-            cursor: default;
+            cursor: pointer;
         }
         h1, h2, h3 {
             font-family: 'Segoe UI', sans-serif;
@@ -108,5 +108,6 @@ else:
         st.markdown(f"**Fecha:** {fila['fecha']} - {fila['hora']}")
         st.text_area("📝 Contenido generado:", value=fila["texto"], height=200, key=f"texto_{idx}")
         st.markdown("---")
+
 
 
