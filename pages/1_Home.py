@@ -1,4 +1,18 @@
 import streamlit as st
+import streamlit as st
+from PIL import Image
+import os
+
+# Establecer título de la página
+st.set_page_config(page_title="Inicio AIMA")
+
+# Ruta al logo dentro de la carpeta 'pages'
+logo_path = os.path.join("pages", "aima_logo.png")
+
+# Cargar y mostrar el logo
+logo = Image.open(logo_path)
+st.image(logo, use_column_width=False, width=200)
+
 from PIL import Image
 
 # Mostrar logo
