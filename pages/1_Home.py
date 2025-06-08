@@ -1,4 +1,10 @@
 import streamlit as st
+from PIL import Image
+
+# Mostrar logo
+logo = Image.open("aima_logo.png")
+st.image(logo, use_column_width=False, width=200)
+
 from openai import OpenAI
 from fpdf import FPDF
 from datetime import datetime
