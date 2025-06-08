@@ -16,8 +16,8 @@ scope = [
 ]
 
 try:
-   google_creds = st.secrets["GOOGLE_CREDENTIALS"]
-   creds = Credentials.from_service_account_info(google_creds, scopes=scope)
+    google_creds = st.secrets["GOOGLE_CREDENTIALS"]
+    creds = Credentials.from_service_account_info(google_creds, scopes=scope)
     client = gspread.authorize(creds)
     sheet = client.open_by_key("1GfknVmvP8Galub6XS2jhbB0ZnBExTWtk5IXAAzp46Wg")
     hoja = sheet.worksheet("Motor de Redaccion AIMA")
@@ -38,7 +38,7 @@ try:
     idx_usuario = columnas.index("Usuario")
     idx_tema = columnas.index("Tema")
     idx_contenido = columnas.index("Contenido")
-except ValueError as ve:
+except ValueError:
     st.error("❌ Error: Asegúrate de que todas las columnas necesarias están en la hoja.")
     st.stop()
 
@@ -58,7 +58,6 @@ for i, fila in enumerate(pendientes):
     st.text_area("📄 Contenido", value=contenido, height=250, key=f"contenido_{i}")
 
     if st.button(f"🌐 Publicar en WordPress - #{i}"):
-        # Datos WordPress desde secrets
         try:
             wp_url = st.secrets["WORDPRESS_URL"]
             wp_user = st.secrets["WORDPRESS_USER"]
@@ -84,3 +83,4 @@ for i, fila in enumerate(pendientes):
         else:
             st.error(f"❌ Error al publicar: {r.status_code}")
             st.text(r.text)
+
