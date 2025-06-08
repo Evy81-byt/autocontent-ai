@@ -14,17 +14,19 @@ scope = [
 ]
 
 try:
-    creds = Credentials.from_service_account_info(
-        st.secrets["GOOGLE_CREDENTIALS"], scopes=scope
-    )
+    google_creds = st.secrets["GOOGLE_CREDENTIALS"]
+    creds = Credentials.from_service_account_info(google_creds, scopes=scope)
     client = gspread.authorize(creds)
-    sheet = client.open_by_key(st.secrets["SPREADSHEET_ID"])
+
+    # Acceder directamente con el ID
+    sheet = client.open_by_key("1GfknVmvP8Galub6XS2jhbB0ZnBExTWtk5IXAAzp46Wg")
     hoja = sheet.worksheet("Historial")
     data = hoja.get_all_records()
     df = pd.DataFrame(data)
 
-    # Normalizar nombres de columnas
+    # Normalizar columnas
     df.columns = [col.strip().lower() for col in df.columns]
+    df = df.rename(columns={"contenido": "texto"})
 
     columnas_esperadas = ["usuario", "tema", "tipo", "tono", "fecha", "hora", "texto"]
     if not all(col in df.columns for col in columnas_esperadas):
@@ -37,6 +39,7 @@ except Exception as e:
     st.exception(e)
     st.stop()
 
+# --- UI ---
 st.title("📚 Historial de Contenidos")
 
 usuarios_disponibles = df["usuario"].dropna().unique().tolist()
@@ -56,6 +59,7 @@ else:
         st.markdown(f"📅 {fila['fecha']} ⏰ {fila['hora']}")
         st.markdown(f"📝 {fila['texto']}")
         st.markdown("---")
+
 
 
 
