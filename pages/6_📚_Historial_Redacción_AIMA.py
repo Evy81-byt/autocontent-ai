@@ -23,8 +23,9 @@ try:
     data = hoja.get_all_records()
     df = pd.DataFrame(data)
 
-    # Normalizar columnas
+    # Normalizar nombres de columnas y renombrar si es necesario
     df.columns = [col.strip().lower() for col in df.columns]
+    df = df.rename(columns={"contenido": "texto"})
 
     columnas_esperadas = ["usuario", "tema", "tipo", "tono", "fecha", "hora", "texto"]
 
@@ -53,6 +54,7 @@ else:
         st.markdown(f"### ✏️ Tema: {fila['tema']}")
         st.markdown(f"**Tipo:** {fila['tipo']} | **Tono:** {fila['tono']}")
         st.markdown(f"**Fecha:** {fila['fecha']} - {fila['hora']}")
-        st.text_area("📝 Contenido generado:", value=fila["texto"], height=200)
+        st.text_area("📝 Contenido generado:", value=fila["texto"], height=200, key=f"texto_{idx}")
         st.markdown("---")
+
 
