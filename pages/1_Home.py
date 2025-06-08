@@ -68,7 +68,8 @@ st.markdown("""
 
 # --- Mostrar logo ---
 try:
-    logo = Image.open("pages/aima_logo.png")  # Asegúrate de que esté en /pages/
+   logo = Image.open("aima_logo.png")
+  # Asegúrate de que esté en /pages/
     st.image(logo, use_column_width=False, width=200)
 except Exception as e:
     st.warning("⚠️ No se pudo cargar el logo.")
