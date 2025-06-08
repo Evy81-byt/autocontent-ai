@@ -1,7 +1,6 @@
 import streamlit as st
 import gspread
 from google.oauth2.service_account import Credentials
-import json
 from datetime import datetime
 import requests
 
@@ -13,7 +12,7 @@ st.markdown("""
             color: #2c3e50;
         }
         body, .stApp {
-            cursor: default;
+            cursor: pointer;
         }
         h1, h2, h3 {
             font-family: 'Segoe UI', sans-serif;
@@ -135,4 +134,5 @@ for i, fila in enumerate(pendientes):
         else:
             st.error(f"❌ Error al publicar: {r.status_code}")
             st.text(r.text)
+
 
