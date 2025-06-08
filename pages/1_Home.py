@@ -68,8 +68,7 @@ st.markdown("""
 
 # --- Mostrar logo ---
 try:
-   logo = Image.open("aima_logo.png")
-  # Asegúrate de que esté en /pages/
+    logo = Image.open("pages/aima_logo.png")  # Asegúrate de que la ruta sea correcta
     st.image(logo, use_column_width=False, width=200)
 except Exception as e:
     st.warning("⚠️ No se pudo cargar el logo.")
@@ -159,6 +158,7 @@ if st.button("🚀 Crear contenido"):
             st.download_button("📄 Descargar PDF", data=f, file_name=nombre_pdf, mime="application/pdf")
     else:
         st.warning("Por favor, completa el campo de tema.")
+
 
 
 
