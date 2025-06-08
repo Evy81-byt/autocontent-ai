@@ -23,13 +23,13 @@ try:
     datos = hoja.get_all_records()
     df = pd.DataFrame(datos)
 
-    # Normalizar columnas
+    # Normalizar nombres de columnas
     df.columns = [col.strip().lower() for col in df.columns]
     columnas_esperadas = ["usuario", "tema", "tipo", "tono", "fecha", "hora", "texto"]
 
     if not all(col in df.columns for col in columnas_esperadas):
         st.error("❌ Las columnas no coinciden con lo esperado.")
-        st.markdown("Se esperaban columnas: `Usuario`, `Tema`, `Tipo`, `Tono`, `Fecha`, `Hora`, `Texto`")
+        st.markdown("Se esperaban columnas: `usuario`, `tema`, `tipo`, `tono`, `fecha`, `hora`, `texto`")
         st.stop()
 
 except Exception as e:
@@ -56,5 +56,6 @@ else:
         st.markdown(f"📅 {fila['fecha']} ⏰ {fila['hora']}")
         st.markdown(f"📝 {fila['texto']}")
         st.markdown("---")
+
 
 
