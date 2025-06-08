@@ -6,6 +6,58 @@ from datetime import datetime
 import requests
 
 st.set_page_config(page_title="🚀 Publicar Contenido AIMA")
+st.markdown("""
+    <style>
+        .stApp {
+            background-color: #f4f7f9;
+            color: #2c3e50;
+        }
+        body, .stApp {
+            cursor: default;
+        }
+        h1, h2, h3 {
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        .markdown-text-container {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 16px;
+            color: #2c3e50;
+        }
+        .stButton>button {
+            background-color: #1abc9c;
+            color: white;
+            padding: 0.5em 1em;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+        .stButton>button:hover {
+            background-color: #16a085;
+        }
+        textarea {
+            background-color: #ffffff;
+            border: 1px solid #dfe6e9;
+            border-radius: 5px;
+            padding: 10px;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #ecf0f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #bdc3c7;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #95a5a6;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 # --- Autenticación Google Sheets ---
 scope = [
