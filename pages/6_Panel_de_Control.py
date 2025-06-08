@@ -12,7 +12,7 @@ st.markdown("""
             color: #2c3e50;
         }
         body, .stApp {
-            cursor: default;
+            cursor: pointer;
         }
         h1, h2, h3 {
             font-family: 'Segoe UI', sans-serif;
@@ -36,11 +36,11 @@ st.markdown("""
         .stButton>button:hover {
             background-color: #16a085;
         }
-        textarea {
-            background-color: #ffffff;
-            border: 1px solid #dfe6e9;
-            border-radius: 5px;
-            padding: 10px;
+        textarea, input, select {
+            background-color: #ffffff !important;
+            border: 1px solid #dfe6e9 !important;
+            border-radius: 5px !important;
+            padding: 10px !important;
         }
         ::-webkit-scrollbar {
             width: 8px;
@@ -75,7 +75,7 @@ try:
     data = hoja.get_all_records()
     df = pd.DataFrame(data)
 
-    # Normalización
+    # Normalizar nombres de columnas
     df.columns = [col.strip().capitalize() for col in df.columns]
 
     columnas_necesarias = ["Título", "Tema", "Usuario", "Estado", "Fecha", "Hora"]
@@ -90,7 +90,7 @@ except Exception as e:
     st.exception(e)
     st.stop()
 
-# --- Filtros ---
+# --- Título e interfaz ---
 st.title("📊 Panel de Control de Contenidos")
 
 usuarios_disponibles = df["Usuario"].dropna().unique().tolist()
@@ -111,6 +111,7 @@ if df.empty:
     st.warning("No hay datos para mostrar con los filtros seleccionados.")
 else:
     st.dataframe(df, use_container_width=True)
+
 
 
 
