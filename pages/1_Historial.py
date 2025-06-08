@@ -5,7 +5,7 @@ import pandas as pd
 
 st.set_page_config(page_title="📜 Historial de Contenido")
 
-# --- Leer credenciales ---
+# --- Autenticación con Google Sheets ---
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/spreadsheets",
@@ -16,34 +16,45 @@ google_creds = st.secrets["GOOGLE_CREDENTIALS"]
 creds = Credentials.from_service_account_info(google_creds, scopes=scope)
 client = gspread.authorize(creds)
 
-# --- Conectar con la hoja correcta ---
+# --- Conectar con la hoja específica ---
 try:
-    sheet = client.open_by_key("1e0WAgCTEaTzgjs0ehUd7rdkEJgeUL4YR_uoftV1lRyg").sheet1
+    sheet = client.open_by_key(st.secrets["SPREADSHEET_ID"])
+    hoja = sheet.worksheet("Historial Usuario")
+    datos = hoja.get_all_records()
+    df = pd.DataFrame(datos)
+
+    # Normalizar columnas
+    df.columns = [col.strip().lower() for col in df.columns]
+    columnas_esperadas = ["usuario", "tema", "tipo", "tono", "fecha", "hora", "texto"]
+
+    if not all(col in df.columns for col in columnas_esperadas):
+        st.error("❌ Las columnas no coinciden con lo esperado.")
+        st.markdown("Se esperaban columnas: `Usuario`, `Tema`, `Tipo`, `Tono`, `Fecha`, `Hora`, `Texto`")
+        st.stop()
+
 except Exception as e:
-    st.error("❌ No se pudo conectar con Google Sheets.")
+    st.error("❌ No se pudo cargar el historial desde Google Sheets.")
     st.exception(e)
     st.stop()
 
-# --- Verificar usuario activo ---
+# --- Filtro por usuario ---
+st.title("📜 Historial de Contenido")
+
 usuario = st.session_state.get("usuario", "")
 if not usuario:
     st.warning("Por favor inicia sesión desde la página principal.")
     st.stop()
 
-# --- Leer datos y filtrar por usuario ---
-datos = sheet.get_all_values()
-df = pd.DataFrame(datos[1:], columns=datos[0])
+df_usuario = df[df["usuario"] == usuario]
 
-if "Usuario" not in df.columns:
-    st.error("❌ La hoja no contiene la columna 'Usuario'.")
-    st.stop()
-
-df_usuario = df[df["Usuario"] == usuario]
-
-# --- Mostrar datos ---
-st.title(f"📜 Historial de {usuario}")
 if df_usuario.empty:
-    st.info("No hay contenido generado por este usuario.")
+    st.info("Este usuario aún no tiene historial.")
 else:
-    st.dataframe(df_usuario)
+    for idx, fila in df_usuario.iterrows():
+        st.markdown(f"### ✍️ Tema: {fila['tema']}")
+        st.markdown(f"**Tipo:** {fila['tipo']}  |  **Tono:** {fila['tono']}")
+        st.markdown(f"📅 {fila['fecha']} ⏰ {fila['hora']}")
+        st.markdown(f"📝 {fila['texto']}")
+        st.markdown("---")
+
 
