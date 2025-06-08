@@ -67,12 +67,15 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- Mostrar logo ---
+# --- Mostrar logo ---
 try:
-    logo = Image.open("pages/aima_logo.png")  # Asegúrate de que la ruta sea correcta
+    logo_path = os.path.join("pages", "aima_logo.png")
+    logo = Image.open(logo_path)
     st.image(logo, use_column_width=False, width=200)
 except Exception as e:
     st.warning("⚠️ No se pudo cargar el logo.")
-    st.exception(e)
+    st.text(f"Error: {e}")
+
 
 # --- Autenticación y carga de claves ---
 openai_api_key = st.secrets["OPENAI_API_KEY"]
