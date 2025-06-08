@@ -8,6 +8,8 @@ import json
 import re
 
 st.set_page_config(page_title="Motor de Redacción AIMA")
+
+# --- Estilo visual moderno ---
 st.markdown("""
     <style>
         .stApp {
@@ -15,7 +17,7 @@ st.markdown("""
             color: #2c3e50;
         }
         body, .stApp {
-            cursor: default;
+            cursor: pointer;
         }
         h1, h2, h3 {
             font-family: 'Segoe UI', sans-serif;
@@ -39,11 +41,11 @@ st.markdown("""
         .stButton>button:hover {
             background-color: #16a085;
         }
-        textarea {
-            background-color: #ffffff;
-            border: 1px solid #dfe6e9;
-            border-radius: 5px;
-            padding: 10px;
+        textarea, input, select {
+            background-color: #ffffff !important;
+            border: 1px solid #dfe6e9 !important;
+            border-radius: 5px !important;
+            padding: 10px !important;
         }
         ::-webkit-scrollbar {
             width: 8px;
@@ -143,5 +145,6 @@ if st.button("✍️ Generar contenido"):
             st.download_button("📄 Descargar PDF", data=f, file_name=nombre_pdf, mime="application/pdf")
     else:
         st.warning("Por favor, completa el tema.")
+
 
 
