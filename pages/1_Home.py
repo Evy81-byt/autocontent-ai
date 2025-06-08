@@ -5,6 +5,82 @@ import os
 
 # Establecer título de la página
 st.set_page_config(page_title="Inicio AIMA")
+# --- Estilo visual moderno y elegante ---
+st.markdown(
+    """
+    <style>
+        /* Fondo general en tono suave */
+        .stApp {
+            background-color: #f4f7f9;
+            color: #2c3e50;
+        }
+
+        /* Estilo del puntero */
+        body, .stApp {
+            cursor: default;
+        }
+
+        /* Títulos estilizados */
+        h1, h2, h3 {
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        /* Contenido de texto */
+        .markdown-text-container {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 16px;
+            color: #2c3e50;
+        }
+
+        /* Botones personalizados */
+        .stButton>button {
+            background-color: #1abc9c;
+            color: white;
+            padding: 0.5em 1em;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .stButton>button:hover {
+            background-color: #16a085;
+            color: #fff;
+        }
+
+        /* Selectbox y campos de entrada */
+        .stSelectbox, .stTextInput, .stTextArea {
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        /* Cuadro de texto (textarea) */
+        textarea {
+            background-color: #ffffff;
+            border: 1px solid #dfe6e9;
+            border-radius: 5px;
+            padding: 10px;
+        }
+
+        /* Scrollbar suave */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #ecf0f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #bdc3c7;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #95a5a6;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
 
 # Ruta al logo dentro de la carpeta 'pages'
 logo_path = os.path.join("pages", "aima_logo.png")
