@@ -68,13 +68,13 @@ st.markdown("""
 
 # --- Mostrar logo ---
 # --- Mostrar logo ---
-try:
-    logo_path = os.path.join("pages", "aima_logo.png")
-    logo = Image.open(logo_path)
-    st.image(logo, use_column_width=False, width=200)
-except Exception as e:
-    st.warning("⚠️ No se pudo cargar el logo.")
-    st.text(f"Error: {e}")
+# try:
+#     logo = Image.open("pages/aima_logo.png")
+#     st.image(logo, use_column_width=False, width=200)
+# except Exception as e:
+#     st.warning("⚠️ No se pudo cargar el logo.")
+#     st.exception(e)
+
 
 
 # --- Autenticación y carga de claves ---
