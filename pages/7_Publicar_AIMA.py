@@ -42,23 +42,10 @@ st.markdown("""
             border-radius: 5px;
             padding: 10px;
         }
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #ecf0f1;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #bdc3c7;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #95a5a6;
-        }
     </style>
 """, unsafe_allow_html=True)
 
-# --- Autenticación con Google Sheets ---
+# --- Autenticación Google Sheets ---
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/spreadsheets",
@@ -80,33 +67,37 @@ except Exception as e:
     st.exception(e)
     st.stop()
 
-# --- Encabezado ---
-st.title("🚀 Publicar Contenidos AIMA")
-
 # --- Verificar columnas necesarias ---
-try:
-    idx_estado = columnas.index("estado")
-    idx_usuario = columnas.index("usuario")
-    idx_tema = columnas.index("tema")
-    idx_contenido = columnas.index("texto")
-except ValueError:
-    st.error("❌ Error: Asegúrate de que las columnas necesarias existen (`estado`, `usuario`, `tema`, `texto`).")
+required_columns = ["estado", "usuario", "tema", "contenido"]
+missing_columns = [col for col in required_columns if col not in columnas]
+if missing_columns:
+    st.error(f"❌ Faltan columnas necesarias: {', '.join(missing_columns)}")
     st.stop()
 
+idx_estado = columnas.index("estado")
+idx_usuario = columnas.index("usuario")
+idx_tema = columnas.index("tema")
+idx_contenido = columnas.index("contenido")
+
 # --- Filtrar contenidos pendientes ---
-pendientes = [fila for fila in contenidos if len(fila) > idx_estado and fila[idx_estado].strip().lower() == "pendiente"]
+pendientes = [
+    fila for fila in contenidos
+    if len(fila) > idx_estado and fila[idx_estado].strip().lower() == "pendiente"
+]
 
 if not pendientes:
     st.info("✅ No hay contenidos pendientes por publicar.")
     st.stop()
 
+st.title("🚀 Publicar Contenidos AIMA")
+
 for i, fila in enumerate(pendientes):
-    try:
-        usuario = fila[idx_usuario]
-        tema = fila[idx_tema]
-        contenido = fila[idx_contenido]
-    except IndexError:
-        continue
+    if len(fila) <= max(idx_estado, idx_usuario, idx_tema, idx_contenido):
+        continue  # Saltar filas incompletas
+
+    usuario = fila[idx_usuario]
+    tema = fila[idx_tema]
+    contenido = fila[idx_contenido]
 
     st.markdown(f"### 🧑 Usuario: {usuario} | 📝 Tema: {tema}")
     st.text_area("📄 Contenido", value=contenido, height=250, key=f"contenido_{i}")
@@ -117,7 +108,7 @@ for i, fila in enumerate(pendientes):
             wp_user = st.secrets["WORDPRESS_USER"]
             wp_pass = st.secrets["WORDPRESS_APP_PASSWORD"]
         except KeyError:
-            st.error("❌ Faltan las credenciales de WordPress en `secrets.toml`.")
+            st.error("❌ Faltan credenciales de WordPress en `secrets.toml`.")
             st.stop()
 
         token = requests.auth._basic_auth_str(wp_user, wp_pass)
@@ -132,11 +123,12 @@ for i, fila in enumerate(pendientes):
 
         if r.status_code == 201:
             st.success("✅ Publicado exitosamente.")
-            fila_idx = contenidos.index(fila) + 2  # +2 porque incluye encabezado (fila 1)
+            fila_idx = i + 2  # +2 por encabezado y base 1
             hoja.update_cell(fila_idx, idx_estado + 1, "Publicado")
         else:
             st.error(f"❌ Error al publicar: {r.status_code}")
             st.text(r.text)
+
 
 
 
