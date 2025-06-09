@@ -100,7 +100,8 @@ if st.button("✍️ Generar contenido"):
         # Guardar en la hoja única con formato compatible
         fecha = datetime.now().strftime("%Y-%m-%d")
         hora = datetime.now().strftime("%H:%M:%S")
-        fila = [usuario, tema, tipo, tono, fecha, hora, texto]
+        estado = "pendiente"
+        fila = [estado, usuario, tema, tipo, tono, fecha, hora, texto]
         hoja.append_row(fila)
         st.success("✅ Guardado automáticamente en la hoja central.")
 
@@ -111,6 +112,7 @@ if st.button("✍️ Generar contenido"):
             st.download_button("📄 Descargar PDF", data=f, file_name=nombre_pdf, mime="application/pdf")
     else:
         st.warning("Por favor, completa el campo de tema.")
+
 
 
 
