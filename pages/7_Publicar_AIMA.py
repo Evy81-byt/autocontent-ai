@@ -58,7 +58,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- Autenticación Google Sheets ---
+# --- Autenticación con Google Sheets ---
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/spreadsheets",
@@ -70,10 +70,10 @@ try:
     google_creds = st.secrets["GOOGLE_CREDENTIALS"]
     creds = Credentials.from_service_account_info(google_creds, scopes=scope)
     client = gspread.authorize(creds)
-    sheet = client.open_by_key("1GfknVmvP8Galub6XS2jhbB0ZnBExTWtk5IXAAzp46Wg")
+    sheet = client.open_by_key(st.secrets["SPREADSHEET_ID"])
     hoja = sheet.worksheet("Motor de Redaccion AIMA")
     datos = hoja.get_all_values()
-    columnas = datos[0]
+    columnas = [col.strip().lower() for col in datos[0]]
     contenidos = datos[1:]
 except Exception as e:
     st.error("❌ Error conectando con Google Sheets.")
@@ -83,27 +83,30 @@ except Exception as e:
 # --- Encabezado ---
 st.title("🚀 Publicar Contenidos AIMA")
 
-# --- Encontrar columnas ---
+# --- Verificar columnas necesarias ---
 try:
-    idx_estado = columnas.index("Estado")
-    idx_usuario = columnas.index("Usuario")
-    idx_tema = columnas.index("Tema")
-    idx_contenido = columnas.index("Contenido")
+    idx_estado = columnas.index("estado")
+    idx_usuario = columnas.index("usuario")
+    idx_tema = columnas.index("tema")
+    idx_contenido = columnas.index("texto")
 except ValueError:
-    st.error("❌ Error: Asegúrate de que todas las columnas necesarias están en la hoja.")
+    st.error("❌ Error: Asegúrate de que las columnas necesarias existen (`estado`, `usuario`, `tema`, `texto`).")
     st.stop()
 
-# --- Mostrar entradas pendientes ---
-pendientes = [fila for fila in contenidos if fila[idx_estado].strip().lower() == "pendiente"]
+# --- Filtrar contenidos pendientes ---
+pendientes = [fila for fila in contenidos if len(fila) > idx_estado and fila[idx_estado].strip().lower() == "pendiente"]
 
 if not pendientes:
     st.info("✅ No hay contenidos pendientes por publicar.")
     st.stop()
 
 for i, fila in enumerate(pendientes):
-    usuario = fila[idx_usuario]
-    tema = fila[idx_tema]
-    contenido = fila[idx_contenido]
+    try:
+        usuario = fila[idx_usuario]
+        tema = fila[idx_tema]
+        contenido = fila[idx_contenido]
+    except IndexError:
+        continue
 
     st.markdown(f"### 🧑 Usuario: {usuario} | 📝 Tema: {tema}")
     st.text_area("📄 Contenido", value=contenido, height=250, key=f"contenido_{i}")
@@ -114,7 +117,7 @@ for i, fila in enumerate(pendientes):
             wp_user = st.secrets["WORDPRESS_USER"]
             wp_pass = st.secrets["WORDPRESS_APP_PASSWORD"]
         except KeyError:
-            st.error("❌ Faltan las credenciales de WordPress en secrets.toml.")
+            st.error("❌ Faltan las credenciales de WordPress en `secrets.toml`.")
             st.stop()
 
         token = requests.auth._basic_auth_str(wp_user, wp_pass)
@@ -129,10 +132,11 @@ for i, fila in enumerate(pendientes):
 
         if r.status_code == 201:
             st.success("✅ Publicado exitosamente.")
-            fila_idx = datos.index(fila) + 1
-            hoja.update_cell(fila_idx + 1, idx_estado + 1, "Publicado")
+            fila_idx = contenidos.index(fila) + 2  # +2 porque incluye encabezado (fila 1)
+            hoja.update_cell(fila_idx, idx_estado + 1, "Publicado")
         else:
             st.error(f"❌ Error al publicar: {r.status_code}")
             st.text(r.text)
+
 
 
