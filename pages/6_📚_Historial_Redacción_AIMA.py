@@ -5,17 +5,23 @@ from google.oauth2.service_account import Credentials
 
 st.set_page_config(page_title="📝 Historial de Redacción AIMA")
 
-# Estilos
+# --- Estilos ---
 st.markdown("""
     <style>
         .stApp { background-color: #f4f7f9; color: #2c3e50; }
         body, .stApp { cursor: default; }
-        h1, h2, h3 { font-family: 'Segoe UI', sans-serif; font-weight: 700; color: #2c3e50; }
+        h1, h2, h3 {
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        .markdown-text-container {
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 16px;
+        }
         .stButton>button {
             background-color: #1abc9c;
             color: white;
-            padding: 0.5em 1em;
-            border: none;
             border-radius: 6px;
             font-weight: bold;
         }
@@ -24,12 +30,11 @@ st.markdown("""
             background-color: #ffffff;
             border: 1px solid #dfe6e9;
             border-radius: 5px;
-            padding: 10px;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# Autenticación
+# --- Autenticación Google Sheets ---
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/spreadsheets",
@@ -46,18 +51,14 @@ try:
     data = hoja.get_all_records()
     df = pd.DataFrame(data)
 
-    # Normalización robusta
-    df.columns = [col.strip().lower().replace("á", "a").replace("é", "e")
-                  .replace("í", "i").replace("ó", "o").replace("ú", "u") for col in df.columns]
-    for col in ["contenido", "content", "text"]:
-        if col in df.columns:
-            df = df.rename(columns={col: "texto"})
+    # Normalizar nombres de columnas
+    df.columns = [col.strip().lower() for col in df.columns]
 
-    columnas_esperadas = ["usuario", "tema", "tipo", "tono", "fecha", "hora", "texto", "estado"]
+    columnas_esperadas = ["usuario", "tema", "tipo", "tono", "fecha", "hora", "contenido", "estado"]
     if not all(col in df.columns for col in columnas_esperadas):
         st.error("❌ Las columnas no coinciden con lo esperado.")
-        st.markdown(f"Se esperaban columnas: {', '.join(columnas_esperadas)}")
-        st.write("Columnas reales detectadas:", df.columns.tolist())
+        st.markdown("Se esperaban columnas: `usuario`, `tema`, `tipo`, `tono`, `fecha`, `hora`, `contenido`, `estado`")
+        st.markdown(f"Columnas reales detectadas: {list(df.columns)}")
         st.stop()
 
 except Exception as e:
@@ -65,7 +66,7 @@ except Exception as e:
     st.exception(e)
     st.stop()
 
-# Interfaz
+# --- Interfaz ---
 st.title("📝 Historial de Redacción AIMA")
 
 usuarios_disponibles = df["usuario"].dropna().unique().tolist()
@@ -80,8 +81,9 @@ else:
         st.markdown(f"### ✏️ Tema: {fila['tema']}")
         st.markdown(f"**Tipo:** {fila['tipo']} | **Tono:** {fila['tono']}")
         st.markdown(f"📅 {fila['fecha']} ⏰ {fila['hora']}")
-        st.text_area("📝 Contenido generado:", value=fila["texto"], height=250, key=f"texto_{idx}")
+        st.text_area("📝 Contenido generado:", value=fila["contenido"], height=250, key=f"contenido_{idx}")
         st.markdown("---")
+
 
 
 
