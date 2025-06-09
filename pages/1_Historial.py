@@ -11,7 +11,7 @@ st.markdown("""
             color: #2c3e50;
         }
         body, .stApp {
-            cursor: default;
+            cursor: pointer;
         }
         h1, h2, h3 {
             font-family: 'Segoe UI', sans-serif;
@@ -57,7 +57,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- Autenticación con Google Sheets ---
+# --- Autenticación Google Sheets ---
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/spreadsheets",
@@ -68,17 +68,18 @@ google_creds = st.secrets["GOOGLE_CREDENTIALS"]
 creds = Credentials.from_service_account_info(google_creds, scopes=scope)
 client = gspread.authorize(creds)
 
-# --- Conectar con la hoja específica ---
+# --- Conectar con la hoja correcta ---
 try:
     sheet = client.open_by_key(st.secrets["SPREADSHEET_ID"])
-    hoja = sheet.worksheet("Historial Usuario")
+    hoja = sheet.worksheet("Motor de Redaccion AIMA")  # HOJA UNIFICADA
     datos = hoja.get_all_records()
     df = pd.DataFrame(datos)
 
-    # Normalizar nombres de columnas
+    # Normalizar columnas
     df.columns = [col.strip().lower() for col in df.columns]
-    columnas_esperadas = ["usuario", "tema", "tipo", "tono", "fecha", "hora", "texto"]
+    df = df.rename(columns={"contenido": "texto"})  # Por si acaso
 
+    columnas_esperadas = ["usuario", "tema", "tipo", "tono", "fecha", "hora", "texto"]
     if not all(col in df.columns for col in columnas_esperadas):
         st.error("❌ Las columnas no coinciden con lo esperado.")
         st.markdown("Se esperaban columnas: `usuario`, `tema`, `tipo`, `tono`, `fecha`, `hora`, `texto`")
@@ -108,6 +109,7 @@ else:
         st.markdown(f"📅 {fila['fecha']} ⏰ {fila['hora']}")
         st.markdown(f"📝 {fila['texto']}")
         st.markdown("---")
+
 
 
 
