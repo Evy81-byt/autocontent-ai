@@ -57,7 +57,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- Autenticación Google Sheets ---
+# --- Autenticación con Google Sheets ---
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/spreadsheets",
@@ -69,20 +69,21 @@ try:
     google_creds = st.secrets["GOOGLE_CREDENTIALS"]
     creds = Credentials.from_service_account_info(google_creds, scopes=scope)
     client = gspread.authorize(creds)
-    sheet = client.open_by_key(st.secrets["SPREADSHEET_ID"])  # Usa ID desde secrets
-    hoja = sheet.worksheet("Motor de Redaccion AIMA")  # Hoja unificada
+    sheet = client.open_by_key(st.secrets["SPREADSHEET_ID"])
+    hoja = sheet.worksheet("Motor de Redaccion AIMA")
     datos = hoja.get_all_records()
+    if not datos:
+        st.info("🔍 Aún no hay datos en la hoja.")
+        st.stop()
     df = pd.DataFrame(datos)
 
-    # Normalizar nombres de columnas
     df.columns = [col.strip().lower() for col in df.columns]
+    df = df.rename(columns={"contenido": "texto"})  # compatibilidad
 
-    # Verificación de columnas esperadas
-    columnas_esperadas = ["Estado", "Usuario", "Tema", "Tipo", "Tono", "Fecha", "Hora", "Contenido"]
-
+    columnas_esperadas = ["estado", "usuario", "tema", "tipo", "tono", "fecha", "hora", "texto"]
     if not all(col in df.columns for col in columnas_esperadas):
         st.error("❌ Las columnas no coinciden con lo esperado.")
-        st.markdown("Se esperaban columnas: `usuario`, `tema`, `tipo`, `tono`, `fecha`, `hora`, `texto`, `estado`")
+        st.markdown("Se esperaban columnas: `estado`, `usuario`, `tema`, `tipo`, `tono`, `fecha`, `hora`, `texto`")
         st.stop()
 
 except Exception as e:
@@ -111,6 +112,7 @@ if df.empty:
     st.warning("No hay datos para mostrar con los filtros seleccionados.")
 else:
     st.dataframe(df[["usuario", "tema", "tipo", "tono", "fecha", "hora", "estado"]], use_container_width=True)
+
 
 
 
