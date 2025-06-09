@@ -7,29 +7,46 @@ from google.oauth2.service_account import Credentials
 import re
 import pandas as pd
 
-st.set_page_config(page_title="Motor de Redacción AIMA")
+st.set_page_config(page_title="📝 Motor de Redacción AIMA")
 
-# --- Estilos visuales modernos ---
+# --- Estilos adaptados a móvil ---
 st.markdown("""
     <style>
-        .stApp { background-color: #f4f7f9; color: #2c3e50; }
-        body, .stApp { cursor: pointer; }
-        h1, h2, h3 {
+        html, body, .stApp {
+            max-width: 100%;
+            overflow-x: hidden;
+            background-color: #f4f7f9;
             font-family: 'Segoe UI', sans-serif;
-            font-weight: 700;
             color: #2c3e50;
+        }
+        h1, h2, h3 {
+            font-weight: 700;
+            font-size: 1.6em;
+        }
+        .stTextInput, .stTextArea, .stSelectbox, .stButton>button {
+            font-size: 18px !important;
+            padding: 12px 18px !important;
         }
         .stButton>button {
             background-color: #1abc9c;
             color: white;
-            border-radius: 6px;
             font-weight: bold;
+            border-radius: 6px;
+            width: 100%;
         }
-        .stButton>button:hover { background-color: #16a085; }
-        textarea {
-            background-color: #ffffff;
-            border: 1px solid #dfe6e9;
-            border-radius: 5px;
+        .stButton>button:hover {
+            background-color: #16a085;
+        }
+        textarea, input, select {
+            background-color: #ffffff !important;
+            border: 1px solid #dfe6e9 !important;
+            border-radius: 5px !important;
+        }
+        @media only screen and (max-width: 600px) {
+            h1, h2, h3 { font-size: 1.4em; }
+            .stTextInput, .stTextArea, .stSelectbox, .stButton>button {
+                font-size: 16px !important;
+            }
         }
     </style>
 """, unsafe_allow_html=True)
@@ -51,7 +68,7 @@ if not st.session_state.usuario:
 usuario = st.session_state.usuario
 st.success(f"Bienvenido, {usuario} 👋")
 
-# --- Conexión Google Sheets ---
+# --- Conexión a Google Sheets ---
 openai_api_key = st.secrets["OPENAI_API_KEY"]
 google_creds = st.secrets["GOOGLE_CREDENTIALS"]
 scope = [
@@ -62,7 +79,7 @@ scope = [
 ]
 creds = Credentials.from_service_account_info(google_creds, scopes=scope)
 client = gspread.authorize(creds)
-sheet = client.open_by_key("1GfknVmvP8Galub6XS2jhbB0ZnBExTWtk5IXAAzp46Wg")
+sheet = client.open_by_key(st.secrets["SPREADSHEET_ID"])
 hoja = sheet.worksheet("Motor de Redaccion AIMA")
 
 # --- Interfaz de redacción ---
@@ -97,7 +114,7 @@ if st.button("✍️ Generar contenido"):
         st.success("✅ Contenido generado")
         st.text_area("🧾 Vista previa", value=texto, height=300)
 
-        # Guardar en la hoja única con formato compatible
+        # Guardar en la hoja
         fecha = datetime.now().strftime("%Y-%m-%d")
         hora = datetime.now().strftime("%H:%M:%S")
         estado = "pendiente"
@@ -105,13 +122,14 @@ if st.button("✍️ Generar contenido"):
         hoja.append_row(fila)
         st.success("✅ Guardado automáticamente en la hoja central.")
 
-        # Descargar PDF
+        # PDF
         nombre_pdf = f"{usuario}_contenido_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
         generar_pdf(texto, nombre_pdf)
         with open(nombre_pdf, "rb") as f:
             st.download_button("📄 Descargar PDF", data=f, file_name=nombre_pdf, mime="application/pdf")
     else:
         st.warning("Por favor, completa el campo de tema.")
+
 
 
 
