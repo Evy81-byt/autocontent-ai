@@ -49,6 +49,10 @@ try:
     sheet = client.open_by_key(st.secrets["SPREADSHEET_ID"])
     hoja = sheet.worksheet("Motor de Redaccion AIMA")
     data = hoja.get_all_records()
+    # Debug temporal para ver qué trae realmente la hoja
+st.subheader("🔍 Debug: Vista previa de datos crudos desde Google Sheets")
+st.write(data)
+
     df = pd.DataFrame(data)
 
     # Normalizar nombres de columnas
