@@ -48,7 +48,10 @@ client = gspread.authorize(creds)
 try:
     sheet = client.open_by_key(st.secrets["SPREADSHEET_ID"])
     hoja = sheet.worksheet("Motor de Redaccion AIMA")
-    data = hoja.get_all_records()
+    data_raw = hoja.get_all_values()
+st.subheader("📋 Vista previa de datos crudos")
+st.write(data_raw)
+
     df = pd.DataFrame(data)
 
     # Debug temporal para ver qué trae realmente la hoja
