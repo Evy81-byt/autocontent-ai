@@ -48,15 +48,13 @@ client = gspread.authorize(creds)
 try:
     sheet = client.open_by_key(st.secrets["SPREADSHEET_ID"])
     hoja = sheet.worksheet("Motor de Redaccion AIMA")
-    data_raw = hoja.get_all_values()
-st.subheader("📋 Vista previa de datos crudos")
-st.write(data_raw)
+    data = hoja.get_all_records()
+
+    # Debug temporal
+    st.subheader("🔍 Debug: Vista previa de datos crudos desde Google Sheets")
+    st.write(data)
 
     df = pd.DataFrame(data)
-
-    # Debug temporal para ver qué trae realmente la hoja
-    st.subheader("🔍 Debug: Vista previa de datos crudos desde Google Sheets")
-    st.write(df)
 
     # Normalizar nombres de columnas
     df.columns = [col.strip().lower() for col in df.columns]
@@ -90,6 +88,7 @@ else:
         st.markdown(f"📅 {fila['fecha']} ⏰ {fila['hora']}")
         st.text_area("📝 Contenido generado:", value=fila["contenido"], height=250, key=f"contenido_{idx}")
         st.markdown("---")
+
 
 
 
