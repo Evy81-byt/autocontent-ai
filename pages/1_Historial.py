@@ -64,20 +64,23 @@ scope = [
     "https://www.googleapis.com/auth/drive.file",
     "https://www.googleapis.com/auth/drive"
 ]
+
 google_creds = st.secrets["GOOGLE_CREDENTIALS"]
 creds = Credentials.from_service_account_info(google_creds, scopes=scope)
 client = gspread.authorize(creds)
 
-# --- Conectar con la hoja correcta ---
+# --- Conectar con la hoja ---
 try:
     sheet = client.open_by_key(st.secrets["SPREADSHEET_ID"])
-    hoja = sheet.worksheet("Motor de Redaccion AIMA")  # HOJA UNIFICADA
+    hoja = sheet.worksheet("Motor de Redaccion AIMA")
     datos = hoja.get_all_records()
+    if not datos:
+        st.info("🔍 Aún no hay contenido registrado.")
+        st.stop()
     df = pd.DataFrame(datos)
 
-    # Normalizar columnas
     df.columns = [col.strip().lower() for col in df.columns]
-    df = df.rename(columns={"contenido": "texto"})  # Por si acaso
+    df = df.rename(columns={"contenido": "texto"})
 
     columnas_esperadas = ["usuario", "tema", "tipo", "tono", "fecha", "hora", "texto"]
     if not all(col in df.columns for col in columnas_esperadas):
@@ -107,8 +110,9 @@ else:
         st.markdown(f"### ✍️ Tema: {fila['tema']}")
         st.markdown(f"**Tipo:** {fila['tipo']}  |  **Tono:** {fila['tono']}")
         st.markdown(f"📅 {fila['fecha']} ⏰ {fila['hora']}")
-        st.markdown(f"📝 {fila['texto']}")
+        st.text_area("📝 Contenido generado:", value=fila['texto'], height=200, key=f"texto_{idx}")
         st.markdown("---")
+
 
 
 
