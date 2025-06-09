@@ -78,7 +78,8 @@ try:
     df.columns = [col.strip().lower() for col in df.columns]
 
     # Verificación de columnas esperadas
-    columnas_esperadas = ["usuario", "tema", "tipo", "tono", "fecha", "hora", "texto", "estado"]
+    columnas_esperadas = ["Estado", "Usuario", "Tema", "Tipo", "Tono", "Fecha", "Hora", "Contenido"]
+
     if not all(col in df.columns for col in columnas_esperadas):
         st.error("❌ Las columnas no coinciden con lo esperado.")
         st.markdown("Se esperaban columnas: `usuario`, `tema`, `tipo`, `tono`, `fecha`, `hora`, `texto`, `estado`")
