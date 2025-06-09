@@ -52,13 +52,18 @@ try:
     hoja = sheet.worksheet("Motor de Redaccion AIMA")
     data = hoja.get_all_records()
     df = pd.DataFrame(data)
+    st.write("Columnas reales detectadas:", df.columns.tolist())
 
-    # Normalizar columnas
-    df.columns = [col.strip().lower() for col in df.columns]
 
-    # Renombrar automáticamente si contiene "contenido"
-    if "contenido" in df.columns:
-        df = df.rename(columns={"contenido": "texto"})
+  # Limpiar y normalizar columnas
+df.columns = [col.strip().lower().replace("á", "a").replace("é", "e").replace("í", "i")
+              .replace("ó", "o").replace("ú", "u") for col in df.columns]
+
+# Renombrar posibles variantes a "texto"
+for posible in ["contenido", "text", "content"]:
+    if posible in df.columns:
+        df = df.rename(columns={posible: "texto"})
+
 
     columnas_esperadas = ["usuario", "tema", "tipo", "tono", "fecha", "hora", "texto", "estado"]
     if not all(col in df.columns for col in columnas_esperadas):
