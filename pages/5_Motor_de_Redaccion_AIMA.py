@@ -4,85 +4,37 @@ from fpdf import FPDF
 from datetime import datetime
 import gspread
 from google.oauth2.service_account import Credentials
-import json
 import re
+import pandas as pd
 
 st.set_page_config(page_title="Motor de Redacción AIMA")
 
-# --- Estilo visual moderno ---
+# --- Estilos visuales modernos ---
 st.markdown("""
     <style>
-        .stApp {
-            background-color: #f4f7f9;
-            color: #2c3e50;
-        }
-        body, .stApp {
-            cursor: pointer;
-        }
+        .stApp { background-color: #f4f7f9; color: #2c3e50; }
+        body, .stApp { cursor: pointer; }
         h1, h2, h3 {
             font-family: 'Segoe UI', sans-serif;
             font-weight: 700;
             color: #2c3e50;
         }
-        .markdown-text-container {
-            font-family: 'Segoe UI', sans-serif;
-            font-size: 16px;
-            color: #2c3e50;
-        }
         .stButton>button {
             background-color: #1abc9c;
             color: white;
-            padding: 0.5em 1em;
-            border: none;
             border-radius: 6px;
             font-weight: bold;
-            transition: background-color 0.3s ease;
         }
-        .stButton>button:hover {
-            background-color: #16a085;
-        }
-        textarea, input, select {
-            background-color: #ffffff !important;
-            border: 1px solid #dfe6e9 !important;
-            border-radius: 5px !important;
-            padding: 10px !important;
-        }
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #ecf0f1;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #bdc3c7;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #95a5a6;
+        .stButton>button:hover { background-color: #16a085; }
+        textarea {
+            background-color: #ffffff;
+            border: 1px solid #dfe6e9;
+            border-radius: 5px;
         }
     </style>
 """, unsafe_allow_html=True)
 
-# --- Autenticación Google Sheets ---
-scope = [
-    "https://spreadsheets.google.com/feeds",
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive.file",
-    "https://www.googleapis.com/auth/drive"
-]
-
-try:
-    google_creds = st.secrets["GOOGLE_CREDENTIALS"]
-    creds = Credentials.from_service_account_info(google_creds, scopes=scope)
-    client = gspread.authorize(creds)
-    sheet = client.open_by_key("1GfknVmvP8Galub6XS2jhbB0ZnBExTWtk5IXAAzp46Wg")
-    hoja = sheet.worksheet("Motor de Redaccion AIMA")
-except Exception as e:
-    st.error("❌ No se pudo conectar con Google Sheets.")
-    st.exception(e)
-    st.stop()
-
-# --- Inicio de sesión ---
+# --- Sesión de usuario ---
 if "usuario" not in st.session_state:
     st.session_state.usuario = ""
 
@@ -93,19 +45,31 @@ if st.sidebar.button("Entrar") and usuario_input.strip():
     st.rerun()
 
 if not st.session_state.usuario:
-    st.warning("Por favor, inicia sesión con tu nombre de usuario.")
+    st.warning("Por favor, inicia sesión para acceder.")
     st.stop()
 
 usuario = st.session_state.usuario
+st.success(f"Bienvenido, {usuario} 👋")
 
-# --- Interfaz de usuario ---
+# --- Conexión Google Sheets ---
+openai_api_key = st.secrets["OPENAI_API_KEY"]
+google_creds = st.secrets["GOOGLE_CREDENTIALS"]
+scope = [
+    "https://spreadsheets.google.com/feeds",
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive.file",
+    "https://www.googleapis.com/auth/drive"
+]
+creds = Credentials.from_service_account_info(google_creds, scopes=scope)
+client = gspread.authorize(creds)
+sheet = client.open_by_key("1GfknVmvP8Galub6XS2jhbB0ZnBExTWtk5IXAAzp46Wg")
+hoja = sheet.worksheet("Motor de Redaccion AIMA")
+
+# --- Interfaz de redacción ---
 st.title("📝 Motor de Redacción AIMA")
-
 tipo = st.selectbox("Tipo de contenido", ["Artículo", "Email", "Video Script", "Post Instagram", "Otro"])
 tono = st.selectbox("Tono de voz", ["Formal", "Informal", "Creativo", "Inspirador"])
 tema = st.text_area("Tema o idea principal")
-
-openai_api_key = st.secrets["OPENAI_API_KEY"]
 
 def generar_contenido(tema, tipo, tono):
     client = OpenAI(api_key=openai_api_key)
@@ -126,25 +90,28 @@ def generar_pdf(texto, nombre_archivo):
         pdf.multi_cell(0, 10, linea)
     pdf.output(nombre_archivo)
 
+# --- Generar contenido ---
 if st.button("✍️ Generar contenido"):
     if tema.strip():
         texto = generar_contenido(tema, tipo, tono)
-        st.success("✅ Contenido generado:")
+        st.success("✅ Contenido generado")
         st.text_area("🧾 Vista previa", value=texto, height=300)
 
-        # Guardar en Google Sheets
+        # Guardar en la hoja única con formato compatible
         fecha = datetime.now().strftime("%Y-%m-%d")
         hora = datetime.now().strftime("%H:%M:%S")
         fila = [usuario, tema, tipo, tono, fecha, hora, texto]
         hoja.append_row(fila)
+        st.success("✅ Guardado automáticamente en la hoja central.")
 
         # Descargar PDF
-        nombre_pdf = f"{usuario}_redaccion_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        nombre_pdf = f"{usuario}_contenido_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
         generar_pdf(texto, nombre_pdf)
         with open(nombre_pdf, "rb") as f:
             st.download_button("📄 Descargar PDF", data=f, file_name=nombre_pdf, mime="application/pdf")
     else:
-        st.warning("Por favor, completa el tema.")
+        st.warning("Por favor, completa el campo de tema.")
+
 
 
 
