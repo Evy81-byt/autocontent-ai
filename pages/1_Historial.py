@@ -4,45 +4,50 @@ from google.oauth2.service_account import Credentials
 import pandas as pd
 
 st.set_page_config(page_title="📜 Historial de Contenido")
+
+# --- Estilo adaptado a móviles ---
 st.markdown("""
     <style>
-        .stApp {
+        html, body, .stApp {
+            max-width: 100%;
+            overflow-x: hidden;
             background-color: #f4f7f9;
+            font-family: 'Segoe UI', sans-serif;
             color: #2c3e50;
         }
-        body, .stApp {
-            cursor: pointer;
-        }
+
         h1, h2, h3 {
-            font-family: 'Segoe UI', sans-serif;
             font-weight: 700;
-            color: #2c3e50;
+            font-size: 1.6em;
+            margin-bottom: 0.4em;
         }
-        .markdown-text-container {
-            font-family: 'Segoe UI', sans-serif;
-            font-size: 16px;
-            color: #2c3e50;
+
+        .stTextInput, .stTextArea, .stSelectbox, .stButton>button {
+            font-size: 18px !important;
+            padding: 12px 18px !important;
         }
+
         .stButton>button {
+            width: 100% !important;
+            border-radius: 8px;
             background-color: #1abc9c;
             color: white;
-            padding: 0.5em 1em;
-            border: none;
-            border-radius: 6px;
             font-weight: bold;
-            transition: background-color 0.3s ease;
+            margin-top: 0.5em;
         }
+
         .stButton>button:hover {
             background-color: #16a085;
         }
-        textarea {
-            background-color: #ffffff;
-            border: 1px solid #dfe6e9;
-            border-radius: 5px;
-            padding: 10px;
+
+        textarea, input, select {
+            background-color: #ffffff !important;
+            border: 1px solid #dfe6e9 !important;
+            border-radius: 5px !important;
         }
+
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 6px;
         }
         ::-webkit-scrollbar-track {
             background: #ecf0f1;
@@ -51,8 +56,17 @@ st.markdown("""
             background: #bdc3c7;
             border-radius: 4px;
         }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #95a5a6;
+
+        @media only screen and (max-width: 600px) {
+            h1, h2, h3 {
+                font-size: 1.4em;
+            }
+            .stTextInput, .stTextArea, .stSelectbox {
+                font-size: 16px !important;
+            }
+            .stButton>button {
+                font-size: 16px !important;
+            }
         }
     </style>
 """, unsafe_allow_html=True)
@@ -110,8 +124,9 @@ else:
         st.markdown(f"### ✍️ Tema: {fila['tema']}")
         st.markdown(f"**Tipo:** {fila['tipo']}  |  **Tono:** {fila['tono']}")
         st.markdown(f"📅 {fila['fecha']} ⏰ {fila['hora']}")
-        st.text_area("📝 Contenido generado:", value=fila['texto'], height=200, key=f"texto_{idx}")
+        st.text_area("📝 Contenido generado:", value=fila['texto'], height=250, key=f"texto_{idx}")
         st.markdown("---")
+
 
 
 
