@@ -74,14 +74,15 @@ client = gspread.authorize(creds)
 try:
     sheet = client.open_by_key("1GfknVmvP8Galub6XS2jhbB0ZnBExTWtk5IXAAzp46Wg")
     hoja_redaccion = sheet.worksheet("Motor de Redaccion AIMA")
-    hoja_historial = sheet.worksheet("Historial Usuario")  # asegúrate que esta hoja exista
+    hoja = sheet.worksheet("Motor de Redaccion AIMA"   # asegúrate que esta hoja exista
     data = hoja_redaccion.get_all_records()
     df = pd.DataFrame(data)
 
     df.columns = [col.strip().lower() for col in df.columns]
     df = df.rename(columns={"contenido": "texto"})
 
-    columnas_esperadas = ["usuario", "tema", "tipo", "tono", "fecha", "hora", "texto"]
+   columnas_esperadas = ["usuario", "tema", "tipo", "tono", "fecha", "hora", "contenido", "estado"]
+
 
     if not all(col in df.columns for col in columnas_esperadas):
         st.error("❌ Las columnas no coinciden con lo esperado.")
