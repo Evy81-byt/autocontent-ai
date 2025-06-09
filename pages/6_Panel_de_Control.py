@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
-import json
 
 st.set_page_config(page_title="📊 Panel de Control de Contenidos")
 st.markdown("""
@@ -70,19 +69,19 @@ try:
     google_creds = st.secrets["GOOGLE_CREDENTIALS"]
     creds = Credentials.from_service_account_info(google_creds, scopes=scope)
     client = gspread.authorize(creds)
-    sheet = client.open_by_key("1GfknVmvP8Galub6XS2jhbB0ZnBExTWtk5IXAAzp46Wg")
-    hoja = sheet.worksheet("Panel")
-    data = hoja.get_all_records()
-    df = pd.DataFrame(data)
+    sheet = client.open_by_key(st.secrets["SPREADSHEET_ID"])  # Usa ID desde secrets
+    hoja = sheet.worksheet("Motor de Redaccion AIMA")  # Hoja unificada
+    datos = hoja.get_all_records()
+    df = pd.DataFrame(datos)
 
     # Normalizar nombres de columnas
-    df.columns = [col.strip().capitalize() for col in df.columns]
+    df.columns = [col.strip().lower() for col in df.columns]
 
-    columnas_necesarias = ["Título", "Tema", "Usuario", "Estado", "Fecha", "Hora"]
-
-    if not all(col in df.columns for col in columnas_necesarias):
+    # Verificación de columnas esperadas
+    columnas_esperadas = ["usuario", "tema", "tipo", "tono", "fecha", "hora", "texto", "estado"]
+    if not all(col in df.columns for col in columnas_esperadas):
         st.error("❌ Las columnas no coinciden con lo esperado.")
-        st.markdown("Se esperaban columnas: `Título`, `Tema`, `Usuario`, `Estado`, `Fecha`, `Hora`")
+        st.markdown("Se esperaban columnas: `usuario`, `tema`, `tipo`, `tono`, `fecha`, `hora`, `texto`, `estado`")
         st.stop()
 
 except Exception as e:
@@ -90,27 +89,28 @@ except Exception as e:
     st.exception(e)
     st.stop()
 
-# --- Título e interfaz ---
+# --- Interfaz de filtros ---
 st.title("📊 Panel de Control de Contenidos")
 
-usuarios_disponibles = df["Usuario"].dropna().unique().tolist()
+usuarios_disponibles = df["usuario"].dropna().unique().tolist()
 usuario_filtro = st.selectbox("Filtrar por usuario", options=["Todos"] + usuarios_disponibles)
 
-estados_disponibles = df["Estado"].dropna().unique().tolist()
+estados_disponibles = df["estado"].dropna().unique().tolist()
 estado_filtro = st.selectbox("Filtrar por estado", options=["Todos"] + estados_disponibles)
 
 # --- Aplicar filtros ---
 if usuario_filtro != "Todos":
-    df = df[df["Usuario"] == usuario_filtro]
+    df = df[df["usuario"] == usuario_filtro]
 
 if estado_filtro != "Todos":
-    df = df[df["Estado"] == estado_filtro]
+    df = df[df["estado"] == estado_filtro]
 
 # --- Mostrar resultados ---
 if df.empty:
     st.warning("No hay datos para mostrar con los filtros seleccionados.")
 else:
-    st.dataframe(df, use_container_width=True)
+    st.dataframe(df[["usuario", "tema", "tipo", "tono", "fecha", "hora", "estado"]], use_container_width=True)
+
 
 
 
