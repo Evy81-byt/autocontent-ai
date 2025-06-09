@@ -50,10 +50,6 @@ try:
     hoja = sheet.worksheet("Motor de Redaccion AIMA")
     data = hoja.get_all_records()
 
-    # Debug temporal
-    st.subheader("🔍 Debug: Vista previa de datos crudos desde Google Sheets")
-    st.write(data)
-
     df = pd.DataFrame(data)
 
     # Normalizar nombres de columnas
