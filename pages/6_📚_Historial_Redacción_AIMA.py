@@ -5,7 +5,7 @@ from google.oauth2.service_account import Credentials
 
 st.set_page_config(page_title="📝 Historial de Redacción AIMA")
 
-# Estilos
+# --- Estilos personalizados ---
 st.markdown("""
     <style>
         .stApp {
@@ -18,38 +18,25 @@ st.markdown("""
             font-weight: 700;
             color: #2c3e50;
         }
-        .markdown-text-container {
-            font-family: 'Segoe UI', sans-serif;
-            font-size: 16px;
-            color: #2c3e50;
-        }
         .stButton>button {
             background-color: #1abc9c;
             color: white;
-            padding: 0.5em 1em;
-            border: none;
             border-radius: 6px;
             font-weight: bold;
-            transition: background-color 0.3s ease;
         }
-        .stButton>button:hover { background-color: #16a085; }
+        .stButton>button:hover {
+            background-color: #16a085;
+        }
         textarea {
             background-color: #ffffff;
             border: 1px solid #dfe6e9;
             border-radius: 5px;
             padding: 10px;
         }
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #ecf0f1; }
-        ::-webkit-scrollbar-thumb {
-            background: #bdc3c7;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover { background: #95a5a6; }
     </style>
 """, unsafe_allow_html=True)
 
-# Autenticación Google Sheets
+# --- Autenticación con Google Sheets ---
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/spreadsheets",
@@ -66,9 +53,12 @@ try:
     data = hoja.get_all_records()
     df = pd.DataFrame(data)
 
-    # Normalizar nombres de columnas
+    # Normalizar columnas
     df.columns = [col.strip().lower() for col in df.columns]
-    df = df.rename(columns={"contenido": "texto"})
+
+    # Renombrar automáticamente si contiene "contenido"
+    if "contenido" in df.columns:
+        df = df.rename(columns={"contenido": "texto"})
 
     columnas_esperadas = ["usuario", "tema", "tipo", "tono", "fecha", "hora", "texto", "estado"]
     if not all(col in df.columns for col in columnas_esperadas):
@@ -81,7 +71,7 @@ except Exception as e:
     st.exception(e)
     st.stop()
 
-# Interfaz
+# --- Interfaz de selección de usuario ---
 st.title("📝 Historial de Redacción AIMA")
 
 usuarios_disponibles = df["usuario"].dropna().unique().tolist()
@@ -98,6 +88,7 @@ else:
         st.markdown(f"📅 {fila['fecha']} ⏰ {fila['hora']}")
         st.text_area("📝 Contenido generado:", value=fila["texto"], height=250, key=f"texto_{idx}")
         st.markdown("---")
+
 
 
 
