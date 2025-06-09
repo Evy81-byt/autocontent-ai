@@ -73,38 +73,21 @@ client = gspread.authorize(creds)
 
 try:
     sheet = client.open_by_key("1GfknVmvP8Galub6XS2jhbB0ZnBExTWtk5IXAAzp46Wg")
-    hoja_redaccion = sheet.worksheet("Motor de Redaccion AIMA")
-    hoja = sheet.worksheet("Motor de Redaccion AIMA"   # asegúrate que esta hoja exista
-    data = hoja_redaccion.get_all_records()
+    hoja = sheet.worksheet("Motor de Redaccion AIMA")
+    data = hoja.get_all_records()
     df = pd.DataFrame(data)
 
     df.columns = [col.strip().lower() for col in df.columns]
     df = df.rename(columns={"contenido": "texto"})
 
-   columnas_esperadas = ["usuario", "tema", "tipo", "tono", "fecha", "hora", "contenido", "estado"]
-
-
+    columnas_esperadas = ["usuario", "tema", "tipo", "tono", "fecha", "hora", "texto", "estado"]
     if not all(col in df.columns for col in columnas_esperadas):
         st.error("❌ Las columnas no coinciden con lo esperado.")
-        st.markdown("Se esperaban columnas: `usuario`, `tema`, `tipo`, `tono`, `fecha`, `hora`, `texto`")
+        st.markdown("Se esperaban columnas: `usuario`, `tema`, `tipo`, `tono`, `fecha`, `hora`, `texto`, `estado`")
         st.stop()
 
-    # --- Copiar al historial si no existe ---
-    data_historial = hoja_historial.get_all_records()
-    df_historial = pd.DataFrame(data_historial)
-
-    for _, fila in df.iterrows():
-        if not ((df_historial["usuario"] == fila["usuario"]) &
-                (df_historial["tema"] == fila["tema"]) &
-                (df_historial["fecha"] == fila["fecha"]) &
-                (df_historial["hora"] == fila["hora"])).any():
-            hoja_historial.append_row([
-                fila["usuario"], fila["tema"], fila["tipo"], fila["tono"],
-                fila["fecha"], fila["hora"], fila["texto"]
-            ])
-
 except Exception as e:
-    st.error("❌ No se pudo cargar o sincronizar con Google Sheets.")
+    st.error("❌ No se pudo cargar el historial desde Google Sheets.")
     st.exception(e)
     st.stop()
 
@@ -125,6 +108,7 @@ else:
         st.markdown(f"**Fecha:** {fila['fecha']} - {fila['hora']}")
         st.text_area("📝 Contenido generado:", value=fila["texto"], height=200, key=f"texto_{idx}")
         st.markdown("---")
+
 
 
 
