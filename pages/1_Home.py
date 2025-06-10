@@ -2,6 +2,20 @@ import streamlit as st
 
 st.set_page_config(page_title="✨ Bienvenido a AIMA", layout="wide")
 
+# --- Iniciar sesión / Sesión persistente ---
+st.sidebar.title("👤 Iniciar sesión")
+usuario = st.sidebar.text_input("Escribe tu nombre", value=st.session_state.get("usuario", ""))
+if st.sidebar.button("Entrar") and usuario.strip():
+    st.session_state["usuario"] = usuario.strip()
+    st.experimental_rerun()
+
+if "usuario" not in st.session_state or not st.session_state["usuario"]:
+    st.warning("👈 Inicia sesión para continuar.")
+    st.stop()
+
+usuario = st.session_state["usuario"]
+
+# --- Estilos ---
 st.markdown("""
     <style>
         .stApp {
@@ -15,6 +29,13 @@ st.markdown("""
             font-size: 2.2em;
             margin-bottom: 0.5em;
             color: #1abc9c;
+        }
+        .bienvenida {
+            font-size: 1.3em;
+            font-weight: 500;
+            color: #34495e;
+            text-align: center;
+            margin-bottom: 2rem;
         }
         .card {
             background-color: #f4f7f9;
@@ -57,7 +78,9 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# --- Título y bienvenida ---
 st.markdown("<h1>🚀 Plataforma de Contenidos AIMA</h1>", unsafe_allow_html=True)
+st.markdown(f"<div class='bienvenida'>Bienvenido/a, <strong>{usuario}</strong>. ¿Qué deseas hacer hoy?</div>", unsafe_allow_html=True)
 
 # --- Tarjetas de navegación ---
 col1, col2 = st.columns(2)
@@ -95,6 +118,7 @@ with col2:
         <a class='btn-link' href='/publicar'>Ir a publicar</a>
     </div>
     """, unsafe_allow_html=True)
+
 
 
 
