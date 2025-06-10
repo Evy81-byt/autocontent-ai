@@ -3,34 +3,30 @@ import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 
-st.set_page_config(page_title="📊 Panel de Control de Contenidos")
+st.set_page_config(page_title="📊 Panel de Control de Contenidos", layout="wide")
 st.markdown("""
     <style>
-        .stApp {
+        html, body, .stApp {
+            max-width: 100%;
+            overflow-x: hidden;
             background-color: #f4f7f9;
+            font-family: 'Segoe UI', sans-serif;
             color: #2c3e50;
-        }
-        body, .stApp {
-            cursor: pointer;
         }
         h1, h2, h3 {
-            font-family: 'Segoe UI', sans-serif;
             font-weight: 700;
-            color: #2c3e50;
+            font-size: 1.6em;
         }
-        .markdown-text-container {
-            font-family: 'Segoe UI', sans-serif;
-            font-size: 16px;
-            color: #2c3e50;
+        .stTextInput, .stTextArea, .stSelectbox, .stButton>button {
+            font-size: 16px !important;
+            padding: 10px 14px !important;
         }
         .stButton>button {
             background-color: #1abc9c;
             color: white;
-            padding: 0.5em 1em;
-            border: none;
-            border-radius: 6px;
             font-weight: bold;
-            transition: background-color 0.3s ease;
+            border-radius: 6px;
+            width: 100%;
         }
         .stButton>button:hover {
             background-color: #16a085;
@@ -39,20 +35,12 @@ st.markdown("""
             background-color: #ffffff !important;
             border: 1px solid #dfe6e9 !important;
             border-radius: 5px !important;
-            padding: 10px !important;
         }
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #ecf0f1;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #bdc3c7;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #95a5a6;
+        @media only screen and (max-width: 600px) {
+            h1, h2, h3 { font-size: 1.4em; }
+            .stTextInput, .stTextArea, .stSelectbox, .stButton>button {
+                font-size: 14px !important;
+            }
         }
     </style>
 """, unsafe_allow_html=True)
@@ -72,13 +60,14 @@ try:
     sheet = client.open_by_key(st.secrets["SPREADSHEET_ID"])
     hoja = sheet.worksheet("Motor de Redaccion AIMA")
     datos = hoja.get_all_records()
+
     if not datos:
         st.info("🔍 Aún no hay datos en la hoja.")
         st.stop()
-    df = pd.DataFrame(datos)
 
+    df = pd.DataFrame(datos)
     df.columns = [col.strip().lower() for col in df.columns]
-    df = df.rename(columns={"contenido": "texto"})  # compatibilidad
+    df = df.rename(columns={"contenido": "texto"})
 
     columnas_esperadas = ["estado", "usuario", "tema", "tipo", "tono", "fecha", "hora", "texto"]
     if not all(col in df.columns for col in columnas_esperadas):
@@ -95,10 +84,10 @@ except Exception as e:
 st.title("📊 Panel de Control de Contenidos")
 
 usuarios_disponibles = df["usuario"].dropna().unique().tolist()
-usuario_filtro = st.selectbox("Filtrar por usuario", options=["Todos"] + usuarios_disponibles)
+usuario_filtro = st.selectbox("👤 Filtrar por usuario", options=["Todos"] + usuarios_disponibles)
 
 estados_disponibles = df["estado"].dropna().unique().tolist()
-estado_filtro = st.selectbox("Filtrar por estado", options=["Todos"] + estados_disponibles)
+estado_filtro = st.selectbox("📌 Filtrar por estado", options=["Todos"] + estados_disponibles)
 
 # --- Aplicar filtros ---
 if usuario_filtro != "Todos":
@@ -112,6 +101,7 @@ if df.empty:
     st.warning("No hay datos para mostrar con los filtros seleccionados.")
 else:
     st.dataframe(df[["usuario", "tema", "tipo", "tono", "fecha", "hora", "estado"]], use_container_width=True)
+
 
 
 
