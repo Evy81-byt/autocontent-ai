@@ -4,34 +4,30 @@ from google.oauth2.service_account import Credentials
 from datetime import datetime
 import requests
 
-st.set_page_config(page_title="🚀 Publicar Contenido AIMA")
+st.set_page_config(page_title="🚀 Publicar Contenido AIMA", layout="wide")
 st.markdown("""
     <style>
-        .stApp {
+        html, body, .stApp {
+            max-width: 100%;
+            overflow-x: hidden;
             background-color: #f4f7f9;
+            font-family: 'Segoe UI', sans-serif;
             color: #2c3e50;
-        }
-        body, .stApp {
-            cursor: pointer;
         }
         h1, h2, h3 {
-            font-family: 'Segoe UI', sans-serif;
             font-weight: 700;
-            color: #2c3e50;
+            font-size: 1.6em;
         }
-        .markdown-text-container {
-            font-family: 'Segoe UI', sans-serif;
-            font-size: 16px;
-            color: #2c3e50;
+        .stTextInput, .stTextArea, .stSelectbox, .stButton>button {
+            font-size: 16px !important;
+            padding: 10px 14px !important;
         }
         .stButton>button {
             background-color: #1abc9c;
             color: white;
-            padding: 0.5em 1em;
-            border: none;
-            border-radius: 6px;
             font-weight: bold;
-            transition: background-color 0.3s ease;
+            border-radius: 6px;
+            width: 100%;
         }
         .stButton>button:hover {
             background-color: #16a085;
@@ -41,6 +37,12 @@ st.markdown("""
             border: 1px solid #dfe6e9;
             border-radius: 5px;
             padding: 10px;
+        }
+        @media only screen and (max-width: 600px) {
+            h1, h2, h3 { font-size: 1.4em; }
+            .stTextInput, .stTextArea, .stSelectbox, .stButton>button {
+                font-size: 14px !important;
+            }
         }
     </style>
 """, unsafe_allow_html=True)
@@ -85,11 +87,11 @@ pendientes = [
     if len(fila) > idx_estado and fila[idx_estado].strip().lower() == "pendiente"
 ]
 
+st.title("🚀 Publicar Contenidos AIMA")
+
 if not pendientes:
     st.info("✅ No hay contenidos pendientes por publicar.")
     st.stop()
-
-st.title("🚀 Publicar Contenidos AIMA")
 
 for i, fila in enumerate(pendientes):
     if len(fila) <= max(idx_estado, idx_usuario, idx_tema, idx_contenido):
@@ -99,10 +101,11 @@ for i, fila in enumerate(pendientes):
     tema = fila[idx_tema]
     contenido = fila[idx_contenido]
 
-    st.markdown(f"### 🧑 Usuario: {usuario} | 📝 Tema: {tema}")
+    st.markdown(f"### 👤 Usuario: {usuario}")
+    st.markdown(f"📝 Tema: **{tema}**")
     st.text_area("📄 Contenido", value=contenido, height=250, key=f"contenido_{i}")
 
-    if st.button(f"🌐 Publicar en WordPress - #{i}"):
+    if st.button(f"🌐 Publicar en WordPress - {i + 1}"):
         try:
             wp_url = st.secrets["WORDPRESS_URL"]
             wp_user = st.secrets["WORDPRESS_USER"]
@@ -128,6 +131,7 @@ for i, fila in enumerate(pendientes):
         else:
             st.error(f"❌ Error al publicar: {r.status_code}")
             st.text(r.text)
+
 
 
 
