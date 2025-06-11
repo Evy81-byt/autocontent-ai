@@ -1,79 +1,69 @@
-import streamlit as st
+import openai
 import gspread
+from datetime import datetime, timedelta
 from google.oauth2.service_account import Credentials
-import pandas as pd
-from datetime import datetime
+import random
 import re
-from openai import OpenAI
 
-st.set_page_config(page_title="⚙️ Generador Automático AIMA")
+# --- Configuración ---
+openai.api_key = "TU_OPENAI_API_KEY"
+SPREADSHEET_ID = "1GfknVmvP8Galub6XS2jhbB0ZnBExTWtk5IXAAzp46Wg"
+TEMAS = [
+    "Curiosidades del mundo",
+    "Lugares ocultos de nuestro planeta",
+    "Maravillas modernas que pocos conocen",
+    "Ciudades perdidas y civilizaciones olvidadas",
+    "Fenómenos naturales impresionantes",
+    "Secretos de la Tierra que parecen de otro mundo",
+    "Lugares místicos y sagrados poco explorados"
+]
 
-# --- Autenticación ---
-scope = ["https://spreadsheets.google.com/feeds",
-         "https://www.googleapis.com/auth/spreadsheets",
-         "https://www.googleapis.com/auth/drive.file",
-         "https://www.googleapis.com/auth/drive"]
-
-google_creds = st.secrets["GOOGLE_CREDENTIALS"]
-creds = Credentials.from_service_account_info(google_creds, scopes=scope)
+# --- Google Sheets ---
+scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/spreadsheets",
+         "https://www.googleapis.com/auth/drive.file", "https://www.googleapis.com/auth/drive"]
+creds = Credentials.from_service_account_file("clave.json", scopes=scope)  # Asegúrate de tener clave.json en tu carpeta
 client = gspread.authorize(creds)
-sheet = client.open_by_key(st.secrets["SPREADSHEET_ID"])
-hoja = sheet.worksheet("publicaciones_programadas")
+sheet = client.open_by_key(SPREADSHEET_ID)
+hoja = sheet.worksheet("Publicaciones Programadas")
 
-# --- Leer temas pendientes ---
-data = hoja.get_all_records()
-df = pd.DataFrame(data)
-pendientes = df[df["estado"].str.lower() == "pendiente"]
+# --- Funciones ---
+def generar_slug(texto):
+    return re.sub(r'\s+', '-', texto.lower()).replace('ñ', 'n').strip('-')
 
-if pendientes.empty:
-    st.info("🎉 No hay publicaciones pendientes por generar.")
-    st.stop()
+def generar_contenido(tema):
+    prompt = f"""
+Genera un artículo detallado y atractivo de más de 2000 palabras para un blog titulado 'Maravilloso Planeta' sobre el tema: {tema}.
+Incluye título SEO, meta descripción, keywords, y divide el texto con encabezados (H2, H3).
+"""
+    respuesta = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": prompt}]
+    )
+    return respuesta.choices[0].message.content
 
-st.title("🤖 Generador de Publicaciones Automáticas")
+# --- Crear 7 publicaciones ---
+hoy = datetime.now()
+for i in range(7):
+    fecha_pub = (hoy + timedelta(days=i)).strftime("%Y-%m-%d")
+    tema = random.choice(TEMAS)
+    contenido_bruto = generar_contenido(tema)
 
-openai_api_key = st.secrets["OPENAI_API_KEY"]
-client_ai = OpenAI(api_key=openai_api_key)
+    # Separar por bloques comunes con Regex
+    titulo = contenido_bruto.split("\n")[0].replace("#", "").strip()
+    texto = "\n".join(contenido_bruto.split("\n")[1:]).strip()
+    meta_desc = f"Descubre sobre: {tema} en Maravilloso Planeta."
+    keywords = ", ".join(tema.lower().split())
+    slug = generar_slug(titulo)
 
-# --- Procesar cada pendiente ---
-for i, fila in pendientes.iterrows():
-    tema = fila["tema"]
+    hoja.append_row([
+        fecha_pub,
+        tema,
+        titulo,
+        texto,
+        "",  # imagen_url se puede llenar después
+        meta_desc,
+        keywords,
+        slug,
+        "pendiente"
+    ])
 
-    st.subheader(f"🧠 Tema: {tema}")
-    if st.button(f"✍️ Generar contenido - {tema}"):
-        with st.spinner("Generando contenido con GPT..."):
-            prompt = f"""
-            Crea un artículo largo (más de 2000 palabras) sobre "{tema}", estructurado con encabezados H1, H2 y H3. 
-            Añade una meta descripción SEO, keywords, y sugiere un título llamativo. El contenido debe ser informativo, emocional y original.
-            """
-
-            respuesta = client_ai.chat.completions.create(
-                model="gpt-4",
-                messages=[{"role": "user", "content": prompt}]
-            )
-
-            texto = respuesta.choices[0].message.content.strip()
-
-            # --- Título SEO
-            titulo = texto.split('\n')[0].replace("#", "").strip()
-            meta = f"Explora detalles únicos sobre: {tema}"
-            slug = re.sub(r'[^a-zA-Z0-9]+', '-', titulo.lower()).strip('-')
-            keywords = ", ".join([x.strip() for x in tema.split()])
-
-            # --- Generar imagen con DALL-E
-            img_response = client_ai.images.generate(prompt=tema, n=1, size="1024x1024")
-            img_url = img_response.data[0].url
-
-            st.success("✅ Contenido generado")
-            st.markdown(f"### 🖼 Imagen generada")
-            st.image(img_url, width=400)
-            st.markdown("### ✍️ Texto generado")
-            st.text_area("Vista previa", value=texto[:2000], height=300)
-
-            # --- Guardar todo
-            hoja.update_cell(i + 2, df.columns.get_loc("titulo") + 1, titulo)
-            hoja.update_cell(i + 2, df.columns.get_loc("texto") + 1, texto)
-            hoja.update_cell(i + 2, df.columns.get_loc("imagen_url") + 1, img_url)
-            hoja.update_cell(i + 2, df.columns.get_loc("meta_descripcion") + 1, meta)
-            hoja.update_cell(i + 2, df.columns.get_loc("keywords") + 1, keywords)
-            hoja.update_cell(i + 2, df.columns.get_loc("slug") + 1, slug)
-            hoja.update_cell(i + 2, df.columns.get_loc("estado") + 1, "generado")
