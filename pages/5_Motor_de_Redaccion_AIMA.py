@@ -92,7 +92,7 @@ def generar_contenido(tema, tipo, tono):
     client = OpenAI(api_key=openai_api_key)
     prompt = f"Escribe un {tipo} con tono {tono} sobre: {tema}"
     respuesta = client.chat.completions.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4",
         messages=[{"role": "user", "content": prompt}]
     )
     return respuesta.choices[0].message.content
@@ -129,9 +129,6 @@ if st.button("✍️ Generar contenido"):
             st.download_button("📄 Descargar PDF", data=f, file_name=nombre_pdf, mime="application/pdf")
     else:
         st.warning("Por favor, completa el campo de tema.")
-
-
-
 
 
 
